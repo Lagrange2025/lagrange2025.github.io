@@ -7,21 +7,27 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
+            background-color: #F5F5F5; /* 亮白背景 */
             color: #333;
             margin: 0;
             padding: 0;
+            scroll-behavior: smooth; /* 平滑滚动 */
         }
         header {
-            background-color: #333;
+            background-color: #55CDFC; /* 淡蓝色 */
             color: white;
-            padding: 10px 0;
+            padding: 15px 0;
             text-align: center;
+            font-size: 24px;
         }
         nav {
-            text-align: center;
-            background-color: #444;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: #55CDFC; /* 淡蓝色 */
             padding: 10px 0;
+            text-align: center;
+            z-index: 1000;
         }
         nav a {
             color: white;
@@ -33,14 +39,32 @@
             text-decoration: underline;
         }
         .content {
-            margin: 20px;
+            margin: 80px 20px 60px;
         }
         .section {
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
         .section h2 {
-            border-bottom: 2px solid #333;
+            border-bottom: 3px solid #F7A8B8; /* 淡粉色下划线 */
             padding-bottom: 5px;
+        }
+        .blog-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .blog-post {
+            background: #FFFFFF; /* 纯白背景 */
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .blog-post h3 {
+            color: #F7A8B8; /* 淡粉色标题 */
+            margin: 0 0 10px;
+        }
+        .blog-post p {
+            margin: 0 0 10px;
         }
         .contact-info, .social-links {
             list-style-type: none;
@@ -50,24 +74,25 @@
             margin: 10px 0;
         }
         footer {
-            background-color: #333;
+            background-color: #55CDFC; /* 淡蓝色 */
             color: white;
             text-align: center;
             padding: 15px;
-            position: fixed;
-            bottom: 0;
             width: 100%;
+            position: relative;
+            bottom: 0;
         }
     </style>
 </head>
 <body>
+
     <header>
         <h1>欢迎来到我的博客</h1>
     </header>
 
     <nav>
         <a href="#about">关于我</a>
-        <a href="#portfolio">作品</a>
+        <a href="#blog">博客内容</a>
         <a href="#contact">联系方式</a>
         <a href="#social">社交链接</a>
     </nav>
@@ -75,23 +100,35 @@
     <div class="content">
         <section id="about" class="section">
             <h2>关于我</h2>
-            <p>这里是Lagrange！</p>
+            <p>这里可以写一段自我介绍，告诉大家你是谁，做什么，兴趣爱好等等。</p>
         </section>
 
-        <section id="portfolio" class="section">
-            <h2>作品</h2>
-            <p>展示一些你的作品，可能是项目、文章或其他你想分享的内容。</p>
-            <ul>
-                <li>喵！</li>
-                <li>喵喵！</li>
-                <li>喵喵喵！</li>
-            </ul>
+        <section id="blog" class="section">
+            <h2>博客内容</h2>
+            <div class="blog-container">
+                <div class="blog-post">
+                    <h3>博客文章1</h3>
+                    <p>这是第一篇博客文章的摘要...</p>
+                    <a href="#">阅读全文</a>
+                </div>
+                <div class="blog-post">
+                    <h3>博客文章2</h3>
+                    <p>这是第二篇博客文章的摘要...</p>
+                    <a href="#">阅读全文</a>
+                </div>
+                <div class="blog-post">
+                    <h3>博客文章3</h3>
+                    <p>这是第三篇博客文章的摘要...</p>
+                    <a href="#">阅读全文</a>
+                </div>
+            </div>
         </section>
 
         <section id="contact" class="section">
             <h2>联系方式</h2>
             <ul class="contact-info">
-                <li>Email: private</li>
+                <li>Email: example@example.com</li>
+                <li>电话: 123-456-7890</li>
             </ul>
         </section>
 
@@ -99,7 +136,7 @@
             <h2>社交链接</h2>
             <ul class="social-links">
                 <li><a href="https://www.linkedin.com" target="_blank">LinkedIn</a></li>
-                <li><a href="https://github.com/lagrange2025" target="_blank">GitHub</a></li>
+                <li><a href="https://github.com" target="_blank">GitHub</a></li>
                 <li><a href="https://www.instagram.com" target="_blank">Instagram</a></li>
             </ul>
         </section>
@@ -108,5 +145,6 @@
     <footer>
         <p>&copy; 2025 个人博客 | 所有权利保留</p>
     </footer>
+
 </body>
 </html>
