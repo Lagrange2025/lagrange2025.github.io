@@ -92,11 +92,14 @@
         }
 
         .blog-post {
+            display: flex;
+            align-items: center;
             background: #FFFFFF;
             padding: 15px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s, box-shadow 0.3s;
+            gap: 15px;
         }
 
         .blog-post:hover {
@@ -104,13 +107,15 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
         }
 
-        .blog-post h3 {
-            color: #F7A8B8;
-            margin: 0 0 10px;
+        .blog-thumbnail {
+            width: 120px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
         }
 
-        .blog-post p {
-            margin: 0 0 10px;
+        .blog-text {
+            flex: 1;
         }
 
         .friend-links {
@@ -234,7 +239,6 @@
             const avatar = document.getElementById("avatar");
             const backToTop = document.getElementById("back-to-top");
 
-            // 头像旋转
             avatar.addEventListener("click", function () {
                 avatar.classList.add("rotate");
                 setTimeout(() => {
@@ -242,7 +246,6 @@
                 }, 600);
             });
 
-            // 返回顶部按钮控制
             window.addEventListener("scroll", function () {
                 if (window.scrollY > 300) {
                     backToTop.style.display = "block";
@@ -255,7 +258,6 @@
                 window.scrollTo({ top: 0, behavior: "smooth" });
             });
 
-            // 博客文章动态加载
             const blogContainer = document.getElementById("blog-container");
             fetch("assets/blogs/blog_list.json")
                 .then(response => response.json())
@@ -263,11 +265,7 @@
                     data.forEach(post => {
                         let postElement = document.createElement("div");
                         postElement.classList.add("blog-post");
-                        postElement.innerHTML = `
-                            <h3>${post.title}</h3>
-                            <p>${post.desc}</p>
-                            <a href="${post.link}">阅读全文</a>
-                        `;
+                        postElement.innerHTML = `<img src="${post.image}" class="blog-thumbnail"><div class="blog-text"><h3>${post.title}</h3><p>${post.desc}</p><a href="${post.link}">阅读全文</a></div>`;
                         blogContainer.appendChild(postElement);
                     });
                 })
