@@ -66,7 +66,6 @@
             padding-bottom: 5px;
         }
 
-        /* 头像 */
         .about-container {
             display: flex;
             align-items: center;
@@ -82,12 +81,10 @@
             transition: transform 0.6s ease-in-out;
         }
 
-        /* 旋转动画 */
         .rotate {
             transform: rotate(360deg);
         }
 
-        /* 博客列表 */
         .blog-container {
             display: flex;
             flex-direction: column;
@@ -116,7 +113,6 @@
             margin: 0 0 10px;
         }
 
-        /* 友情链接 */
         .friend-links {
             display: flex;
             flex-wrap: wrap;
@@ -149,7 +145,6 @@
             border-radius: 50%;
         }
 
-        /* 返回顶部按钮 */
         #back-to-top {
             position: fixed;
             bottom: 20px;
@@ -195,22 +190,8 @@
 
         <section id="blog" class="section">
             <h2>博客内容</h2>
-            <div class="blog-container">
-                <div class="blog-post">
-                    <h3>test</h3>
-                    <p>test1</p>
-                    <a href="assets/blogs/1.html">阅读全文</a>
-                </div>
-                <div class="blog-post">
-                    <h3>www无</h3>
-                    <p>无</p>
-                    <a href="#">阅读全文</a>
-                </div>
-                <div class="blog-post">
-                    <h3>无</h3>
-                    <p>无</p>
-                    <a href="#">阅读全文</a>
-                </div>
+            <div class="blog-container" id="blog-container">
+                <!-- 博客文章将由 JavaScript 动态加载 -->
             </div>
         </section>
 
@@ -250,45 +231,23 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            const sections = document.querySelectorAll("section");
-            const navLinks = document.querySelectorAll("nav a");
-            const avatar = document.getElementById("avatar");
-            const backToTop = document.getElementById("back-to-top");
+            const blogContainer = document.getElementById("blog-container");
 
-            window.addEventListener("scroll", function () {
-                let current = "";
-
-                sections.forEach((section) => {
-                    const sectionTop = section.offsetTop - 60;
-                    if (window.scrollY >= sectionTop) {
-                        current = section.getAttribute("id");
-                    }
-                });
-
-                navLinks.forEach((link) => {
-                    link.classList.remove("active");
-                    if (link.getAttribute("href") === `#${current}`) {
-                        link.classList.add("active");
-                    }
-                });
-
-                if (window.scrollY > 300) {
-                    backToTop.style.display = "block";
-                } else {
-                    backToTop.style.display = "none";
-                }
-            });
-
-            avatar.addEventListener("click", function () {
-                avatar.classList.add("rotate");
-                setTimeout(() => {
-                    avatar.classList.remove("rotate");
-                }, 600);
-            });
-
-            backToTop.addEventListener("click", () => {
-                window.scrollTo({ top: 0, behavior: "smooth" });
-            });
+            fetch("assets/blogs/blog_list.json")
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(post => {
+                        let postElement = document.createElement("div");
+                        postElement.classList.add("blog-post");
+                        postElement.innerHTML = `
+                            <h3>${post.title}</h3>
+                            <p>${post.desc}</p>
+                            <a href="${post.link}">阅读全文</a>
+                        `;
+                        blogContainer.appendChild(postElement);
+                    });
+                })
+                .catch(error => console.error("加载博客列表失败:", error));
         });
     </script>
 
