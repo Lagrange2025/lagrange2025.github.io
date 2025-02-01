@@ -116,6 +116,7 @@
             object-fit: cover;
             border-radius: 5px;
             flex-shrink: 0;
+            cursor: pointer;
         }
 
         .blog-text {
@@ -263,7 +264,6 @@
                 window.scrollTo({ top: 0, behavior: "smooth" });
             });
 
-            // 加载博客文章
             const blogContainer = document.getElementById("blog-container");
             fetch("assets/blogs/blog_list.json")
                 .then(response => response.json())
@@ -271,7 +271,7 @@
                     data.forEach(post => {
                         blogContainer.innerHTML += `
                             <div class="blog-post">
-                                <img src="${post.image}" class="blog-thumbnail">
+                                <img src="${post.image}" class="blog-thumbnail" onclick="window.open('${post.link}', '_blank')">
                                 <div class="blog-text">
                                     <h3>${post.title}</h3>
                                     <p>${post.desc}</p>
