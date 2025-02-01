@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
@@ -129,8 +129,8 @@
             transition: transform 0.6s ease-in-out;
         }
 
-        /* 头像旋转动画 */
-        .rotate {
+        /* 头像点击旋转 */
+        .avatar:active {
             transform: rotate(360deg);
         }
 
@@ -143,6 +143,9 @@
         }
 
         .friend-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
             background: white;
             padding: 10px 15px;
             border-radius: 5px;
@@ -158,6 +161,12 @@
             color: white;
         }
 
+        .friend-card img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+
         /* 社交链接 */
         .social-links a {
             text-decoration: none;
@@ -170,6 +179,26 @@
 
         .social-links a:hover {
             color: #F7A8B8;
+        }
+
+        /* 返回顶部按钮 */
+        #back-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #F7A8B8;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none;
+            transition: opacity 0.3s;
+            border: none;
+            font-size: 18px;
+        }
+
+        #back-to-top:hover {
+            background: #55CDFC;
         }
     </style>
 </head>
@@ -196,52 +225,17 @@
             </div>
         </section>
 
-        <section id="blog" class="section">
-            <h2>博客内容</h2>
-            <div class="blog-container">
-                <div class="blog-post">
-                    <h3>test</h3>
-                    <p>test1</p>
-                    <a href="assets/blogs/1.html">阅读全文</a>
-                </div>
-                <div class="blog-post">
-                    <h3>www无</h3>
-                    <p>无</p>
-                    <a href="#">阅读全文</a>
-                </div>
-                <div class="blog-post">
-                    <h3>无</h3>
-                    <p>无</p>
-                    <a href="#">阅读全文</a>
-                </div>
-            </div>
-        </section>
-
         <section id="friends" class="section">
             <h2>友情链接</h2>
             <div class="friend-links">
-                <a href="https://hhh2309.github.io" target="_blank" class="friend-card">猫猫的个人主页！</a>
+                <a href="https://hhh2309.github.io" target="_blank" class="friend-card">
+                    <img src="assets/pic/hhh2309.png" alt="icon"> 猫猫的个人主页！
+                </a>
             </div>
         </section>
-
-        <section id="contact" class="section">
-            <h2>联系方式</h2>
-            <ul class="contact-info">
-                <li>QQ：1740959587</li>
-            </ul>
-        </section>
-
-        <section id="social" class="section">
-            <h2>社交链接</h2>
-            <ul class="social-links">
-                <li>
-                    <a href="https://github.com/lagrange2025" target="_blank">
-                        <span>GitHub</span>
-                    </a>
-                </li>
-            </ul>
-        </section>
     </div>
+
+    <button id="back-to-top">↑</button>
 
     <footer>
         <p>&copy; 2025 Lagrange的博客 | All rights reserved</p>
@@ -251,7 +245,7 @@
         document.addEventListener("DOMContentLoaded", function () {
             const sections = document.querySelectorAll("section");
             const navLinks = document.querySelectorAll("nav a");
-            const avatar = document.getElementById("avatar");
+            const backToTop = document.getElementById("back-to-top");
 
             window.addEventListener("scroll", function () {
                 let current = "";
@@ -269,13 +263,17 @@
                         link.classList.add("active");
                     }
                 });
+
+                // 显示或隐藏返回顶部按钮
+                if (window.scrollY > 300) {
+                    backToTop.style.display = "block";
+                } else {
+                    backToTop.style.display = "none";
+                }
             });
 
-            avatar.addEventListener("click", function () {
-                avatar.classList.add("rotate");
-                setTimeout(() => {
-                    avatar.classList.remove("rotate");
-                }, 600);
+            backToTop.addEventListener("click", () => {
+                window.scrollTo({ top: 0, behavior: "smooth" });
             });
         });
     </script>
