@@ -29,6 +29,22 @@
             font-size: 24px;
         }
 
+        /* 🏳️‍⚧️ 标题流动渐变 */
+        @keyframes transFlagGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        header h1 {
+            background: linear-gradient(90deg, #55CDFC, #F7A8B8, #FFFFFF, #F7A8B8, #55CDFC);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+            animation: transFlagGradient 5s infinite linear;
+        }
+
         nav {
             position: sticky;
             top: 0;
@@ -61,7 +77,7 @@
             margin-bottom: 40px;
         }
 
-        /* 增强标题背景的视觉效果 */
+        /* 标题背景渐变 */
         .section h2 {
             background: linear-gradient(90deg, #F7A8B8, #55CDFC);
             color: white;
@@ -96,14 +112,14 @@
         }
 
         .blog-post {
+            display: flex;
+            align-items: center;
             background: #FFFFFF;
             padding: 15px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s, box-shadow 0.3s;
-            display: flex;
             gap: 15px;
-            align-items: center;
         }
 
         .blog-post:hover {
@@ -116,16 +132,15 @@
             height: 80px;
             object-fit: cover;
             border-radius: 5px;
-            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+
+        .blog-thumbnail:hover {
+            transform: scale(1.05);
         }
 
         .blog-text {
             flex: 1;
-        }
-
-        .blog-post h3 {
-            color: #F7A8B8;
-            margin: 0 0 10px;
         }
 
         .friend-links {
@@ -133,31 +148,6 @@
             flex-wrap: wrap;
             gap: 15px;
             margin-top: 15px;
-        }
-
-        .friend-card {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: white;
-            padding: 10px 15px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            text-decoration: none;
-            color: #333;
-            font-size: 16px;
-            transition: 0.3s;
-        }
-
-        .friend-card:hover {
-            background: #F7A8B8;
-            color: white;
-        }
-
-        .friend-card img {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
         }
 
         #back-to-top {
@@ -209,33 +199,6 @@
                 <!-- 博客文章将由 JavaScript 动态加载 -->
             </div>
         </section>
-
-        <section id="friends" class="section">
-            <h2>友情链接</h2>
-            <div class="friend-links">
-                <a href="https://hhh2309.github.io" target="_blank" class="friend-card">
-                    <img src="assets/pic/hhh2309.png" alt="icon"> 猫猫的个人主页！
-                </a>
-            </div>
-        </section>
-
-        <section id="contact" class="section">
-            <h2>联系方式</h2>
-            <ul>
-                <li>QQ：1740959587</li>
-            </ul>
-        </section>
-
-        <section id="social" class="section">
-            <h2>社交链接</h2>
-            <ul>
-                <li>
-                    <a href="https://github.com/lagrange2025" target="_blank">
-                        <span>GitHub</span>
-                    </a>
-                </li>
-            </ul>
-        </section>
     </div>
 
     <button id="back-to-top">↑</button>
@@ -251,9 +214,7 @@
 
             avatar.addEventListener("click", function () {
                 avatar.classList.add("rotate");
-                setTimeout(() => {
-                    avatar.classList.remove("rotate");
-                }, 600);
+                setTimeout(() => avatar.classList.remove("rotate"), 600);
             });
 
             window.addEventListener("scroll", function () {
@@ -264,10 +225,10 @@
                 window.scrollTo({ top: 0, behavior: "smooth" });
             });
 
-            const blogContainer = document.getElementById("blog-container");
             fetch("assets/blogs/blog_list.json")
                 .then(response => response.json())
                 .then(data => {
+                    const blogContainer = document.getElementById("blog-container");
                     data.forEach(post => {
                         blogContainer.innerHTML += `
                             <div class="blog-post">
