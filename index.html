@@ -61,9 +61,13 @@
             margin-bottom: 40px;
         }
 
+        /* 增强标题背景的视觉效果 */
         .section h2 {
-            border-bottom: 3px solid #F7A8B8;
-            padding-bottom: 5px;
+            background: linear-gradient(90deg, #F7A8B8, #55CDFC);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
         }
 
         .about-container {
@@ -92,14 +96,14 @@
         }
 
         .blog-post {
-            display: flex;
-            align-items: center;
             background: #FFFFFF;
             padding: 15px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
             gap: 15px;
+            align-items: center;
         }
 
         .blog-post:hover {
@@ -112,10 +116,16 @@
             height: 80px;
             object-fit: cover;
             border-radius: 5px;
+            flex-shrink: 0;
         }
 
         .blog-text {
             flex: 1;
+        }
+
+        .blog-post h3 {
+            color: #F7A8B8;
+            margin: 0 0 10px;
         }
 
         .friend-links {
@@ -247,11 +257,7 @@
             });
 
             window.addEventListener("scroll", function () {
-                if (window.scrollY > 300) {
-                    backToTop.style.display = "block";
-                } else {
-                    backToTop.style.display = "none";
-                }
+                backToTop.style.display = window.scrollY > 300 ? "block" : "none";
             });
 
             backToTop.addEventListener("click", function () {
@@ -263,10 +269,17 @@
                 .then(response => response.json())
                 .then(data => {
                     data.forEach(post => {
-                        let postElement = document.createElement("div");
-                        postElement.classList.add("blog-post");
-                        postElement.innerHTML = `<img src="${post.image}" class="blog-thumbnail"><div class="blog-text"><h3>${post.title}</h3><p>${post.desc}</p><a href="${post.link}">阅读全文</a></div>`;
-                        blogContainer.appendChild(postElement);
+                        blogContainer.innerHTML += `
+                            <div class="blog-post">
+                                <a href="${post.link}" target="_blank">
+                                    <img src="${post.image}" class="blog-thumbnail">
+                                </a>
+                                <div class="blog-text">
+                                    <h3>${post.title}</h3>
+                                    <p>${post.desc}</p>
+                                    <a href="${post.link}" target="_blank">阅读全文</a>
+                                </div>
+                            </div>`;
                     });
                 })
                 .catch(error => console.error("加载博客列表失败:", error));
