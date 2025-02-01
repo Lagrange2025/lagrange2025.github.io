@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
@@ -33,7 +33,7 @@
             position: sticky;
             top: 0;
             width: 100%;
-            background-color: #55CDFC; /* 淡蓝色 */
+            background-color: #55CDFC;
             padding: 10px 0;
             text-align: center;
             z-index: 1000;
@@ -62,7 +62,7 @@
         }
 
         .section h2 {
-            border-bottom: 3px solid #F7A8B8; /* 淡粉色下划线 */
+            border-bottom: 3px solid #F7A8B8;
             padding-bottom: 5px;
         }
 
@@ -73,7 +73,7 @@
         }
 
         .blog-post {
-            background: #FFFFFF; /* 纯白背景 */
+            background: #FFFFFF;
             padding: 15px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -86,7 +86,7 @@
         }
 
         .blog-post h3 {
-            color: #F7A8B8; /* 淡粉色标题 */
+            color: #F7A8B8;
             margin: 0 0 10px;
         }
 
@@ -104,7 +104,7 @@
         }
 
         footer {
-            background-color: #55CDFC; /* 淡蓝色 */
+            background-color: #55CDFC;
             color: white;
             text-align: center;
             padding: 15px;
@@ -113,11 +113,11 @@
             bottom: 0;
         }
 
-        /* 头像 + 个人介绍布局 */
+        /* 头像 + 个人介绍 */
         .about-container {
             display: flex;
             align-items: center;
-            gap: 20px; /* 头像和文字之间的间距 */
+            gap: 20px;
         }
 
         .avatar {
@@ -125,10 +125,16 @@
             height: 100px;
             border-radius: 50%;
             object-fit: cover;
-            border: 3px solid #F7A8B8; /* 添加粉色边框 */
+            border: 3px solid #F7A8B8;
+            transition: transform 0.6s ease-in-out;
         }
 
-        /* 友情链接样式优化 */
+        /* 头像旋转动画 */
+        .rotate {
+            transform: rotate(360deg);
+        }
+
+        /* 友情链接样式 */
         .friend-links {
             display: flex;
             flex-wrap: wrap;
@@ -148,11 +154,11 @@
         }
 
         .friend-card:hover {
-            background: #F7A8B8; /* 淡粉色 */
+            background: #F7A8B8;
             color: white;
         }
 
-        /* 社交链接图标优化 */
+        /* 社交链接 */
         .social-links a {
             text-decoration: none;
             color: #333;
@@ -185,7 +191,7 @@
         <section id="about" class="section">
             <h2>关于我</h2>
             <div class="about-container">
-                <img src="assets/pic/avatar.png" alt="avatar" class="avatar">
+                <img src="assets/pic/avatar.png" alt="avatar" class="avatar" id="avatar">
                 <p>这里是Lagrange！</p>
             </div>
         </section>
@@ -197,6 +203,16 @@
                     <h3>test</h3>
                     <p>test1</p>
                     <a href="1.html">阅读全文</a>
+                </div>
+                <div class="blog-post">
+                    <h3>www无</h3>
+                    <p>无</p>
+                    <a href="#">阅读全文</a>
+                </div>
+                <div class="blog-post">
+                    <h3>无</h3>
+                    <p>无</p>
+                    <a href="#">阅读全文</a>
                 </div>
             </div>
         </section>
@@ -235,6 +251,7 @@
         document.addEventListener("DOMContentLoaded", function () {
             const sections = document.querySelectorAll("section");
             const navLinks = document.querySelectorAll("nav a");
+            const avatar = document.getElementById("avatar");
 
             window.addEventListener("scroll", function () {
                 let current = "";
@@ -252,6 +269,13 @@
                         link.classList.add("active");
                     }
                 });
+            });
+
+            avatar.addEventListener("click", function () {
+                avatar.classList.add("rotate");
+                setTimeout(() => {
+                    avatar.classList.remove("rotate");
+                }, 600);
             });
         });
     </script>
