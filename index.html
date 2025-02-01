@@ -7,14 +7,14 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #F5F5F5;
+            background-color: #F5F5F5; /* 亮白背景 */
             color: #333;
             margin: 0;
             padding: 0;
-            scroll-behavior: smooth;
+            scroll-behavior: smooth; /* 平滑滚动 */
         }
         header {
-            background-color: #55CDFC;
+            background-color: #55CDFC; /* 淡蓝色 */
             color: white;
             padding: 15px 0;
             text-align: center;
@@ -24,7 +24,7 @@
             position: fixed;
             top: 0;
             width: 100%;
-            background-color: #55CDFC;
+            background-color: #55CDFC; /* 淡蓝色 */
             padding: 10px 0;
             text-align: center;
             z-index: 1000;
@@ -45,36 +45,22 @@
             margin-bottom: 40px;
         }
         .section h2 {
-            border-bottom: 3px solid #F7A8B8;
+            border-bottom: 3px solid #F7A8B8; /* 淡粉色下划线 */
             padding-bottom: 5px;
         }
-
-        /* 博客文章布局 */
         .blog-container {
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
         .blog-post {
-            display: flex;
-            align-items: center;
-            background: #FFFFFF;
+            background: #FFFFFF; /* 纯白背景 */
             padding: 15px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            gap: 15px;
-        }
-        .thumbnail {
-            width: 150px;
-            height: 100px;
-            border-radius: 5px;
-            object-fit: cover;
-        }
-        .blog-content {
-            flex: 1;
         }
         .blog-post h3 {
-            color: #F7A8B8;
+            color: #F7A8B8; /* 淡粉色标题 */
             margin: 0 0 10px;
         }
         .blog-post p {
@@ -88,13 +74,27 @@
             margin: 10px 0;
         }
         footer {
-            background-color: #55CDFC;
+            background-color: #55CDFC; /* 淡蓝色 */
             color: white;
             text-align: center;
             padding: 15px;
             width: 100%;
             position: relative;
             bottom: 0;
+        }
+
+        /* 头像 + 个人介绍布局 */
+        .about-container {
+            display: flex;
+            align-items: center;
+            gap: 20px; /* 头像和文字之间的间距 */
+        }
+        .avatar {
+            width: 100px; /* 头像大小 */
+            height: 100px;
+            border-radius: 50%; /* 圆形头像 */
+            object-fit: cover;
+            border: 3px solid #F7A8B8; /* 添加粉色边框 */
         }
     </style>
 </head>
@@ -123,32 +123,7 @@
 
         <section id="blog" class="section">
             <h2>博客内容</h2>
-            <div class="blog-container">
-                <div class="blog-post">
-                    <img src="assets/pic/blog1.jpg" alt="博客缩略图1" class="thumbnail">
-                    <div class="blog-content">
-                        <h3>博客文章标题 1</h3>
-                        <p>这是第一篇博客的摘要内容...</p>
-                        <a href="1.html">阅读全文</a>
-                    </div>
-                </div>
-                <div class="blog-post">
-                    <img src="assets/pic/blog2.jpg" alt="博客缩略图2" class="thumbnail">
-                    <div class="blog-content">
-                        <h3>博客文章标题 2</h3>
-                        <p>这是第二篇博客的摘要内容...</p>
-                        <a href="#">阅读全文</a>
-                    </div>
-                </div>
-                <div class="blog-post">
-                    <img src="assets/pic/blog3.jpg" alt="博客缩略图3" class="thumbnail">
-                    <div class="blog-content">
-                        <h3>博客文章标题 3</h3>
-                        <p>这是第三篇博客的摘要内容...</p>
-                        <a href="#">阅读全文</a>
-                    </div>
-                </div>
-            </div>
+            <div class="blog-container" id="blog-list"></div>
         </section>
 
         <section id="friends" class="section">
@@ -157,6 +132,29 @@
                 <a href="https://hhh2309.github.io" target="_blank" class="friend-card">猫猫的个人主页！</a>
             </div>
         </section>
+
+        <style>
+            .friend-links {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 15px;
+                margin-top: 15px;
+            }
+            .friend-card {
+                background: white;
+                padding: 10px 15px;
+                border-radius: 5px;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                text-decoration: none;
+                color: #333;
+                font-size: 16px;
+                transition: 0.3s;
+            }
+            .friend-card:hover {
+                background: #F7A8B8; /* 淡粉色 */
+                color: white;
+            }
+        </style>
 
         <section id="contact" class="section">
             <h2>联系方式</h2>
@@ -176,6 +174,37 @@
     <footer>
         <p>&copy; 2025 Lagrange的博客 | All rights reserved</p>
     </footer>
+
+    <script>
+        // 博客文章数据
+        const blogPosts = [
+            { title: "第一篇文章", content: "这是第一篇博客文章的简介...", link: "post1.html" },
+            { title: "第二篇文章", content: "这是第二篇博客文章的简介...", link: "post2.html" },
+            { title: "第三篇文章", content: "这是一篇示例博客...", link: "post3.html" }
+        ];
+
+        // 生成博客列表
+        function renderBlogPosts() {
+            const blogList = document.getElementById("blog-list");
+            blogList.innerHTML = ""; // 清空现有内容
+
+            blogPosts.forEach(post => {
+                const postElement = document.createElement("div");
+                postElement.classList.add("blog-post");
+
+                postElement.innerHTML = `
+                    <h3>${post.title}</h3>
+                    <p>${post.content}</p>
+                    <a href="${post.link}">阅读全文</a>
+                `;
+
+                blogList.appendChild(postElement);
+            });
+        }
+
+        // 在页面加载完成后渲染博客列表
+        document.addEventListener("DOMContentLoaded", renderBlogPosts);
+    </script>
 
 </body>
 </html>
