@@ -231,8 +231,32 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            const blogContainer = document.getElementById("blog-container");
+            const avatar = document.getElementById("avatar");
+            const backToTop = document.getElementById("back-to-top");
 
+            // 头像旋转
+            avatar.addEventListener("click", function () {
+                avatar.classList.add("rotate");
+                setTimeout(() => {
+                    avatar.classList.remove("rotate");
+                }, 600);
+            });
+
+            // 返回顶部按钮控制
+            window.addEventListener("scroll", function () {
+                if (window.scrollY > 300) {
+                    backToTop.style.display = "block";
+                } else {
+                    backToTop.style.display = "none";
+                }
+            });
+
+            backToTop.addEventListener("click", function () {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            });
+
+            // 博客文章动态加载
+            const blogContainer = document.getElementById("blog-container");
             fetch("assets/blogs/blog_list.json")
                 .then(response => response.json())
                 .then(data => {
