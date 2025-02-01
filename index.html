@@ -12,7 +12,15 @@
             margin: 0;
             padding: 0;
             scroll-behavior: smooth; /* 平滑滚动 */
+            opacity: 0;
+            animation: fadeIn 0.5s ease-in forwards;
         }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
         header {
             background-color: #55CDFC; /* 淡蓝色 */
             color: white;
@@ -20,8 +28,9 @@
             text-align: center;
             font-size: 24px;
         }
+
         nav {
-            position: fixed;
+            position: sticky;
             top: 0;
             width: 100%;
             background-color: #55CDFC; /* 淡蓝色 */
@@ -29,50 +38,71 @@
             text-align: center;
             z-index: 1000;
         }
+
         nav a {
             color: white;
             margin: 0 15px;
             text-decoration: none;
             font-size: 18px;
+            transition: color 0.3s ease;
         }
-        nav a:hover {
+
+        nav a:hover,
+        nav a.active {
+            font-weight: bold;
             text-decoration: underline;
         }
+
         .content {
             margin: 80px 20px 60px;
         }
+
         .section {
             margin-bottom: 40px;
         }
+
         .section h2 {
             border-bottom: 3px solid #F7A8B8; /* 淡粉色下划线 */
             padding-bottom: 5px;
         }
+
         .blog-container {
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
+
         .blog-post {
             background: #FFFFFF; /* 纯白背景 */
             padding: 15px;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
         }
+
+        .blog-post:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        }
+
         .blog-post h3 {
             color: #F7A8B8; /* 淡粉色标题 */
             margin: 0 0 10px;
         }
+
         .blog-post p {
             margin: 0 0 10px;
         }
+
         .contact-info, .social-links {
             list-style-type: none;
             padding: 0;
         }
+
         .contact-info li, .social-links li {
             margin: 10px 0;
         }
+
         footer {
             background-color: #55CDFC; /* 淡蓝色 */
             color: white;
@@ -89,12 +119,51 @@
             align-items: center;
             gap: 20px; /* 头像和文字之间的间距 */
         }
+
         .avatar {
-            width: 100px; /* 头像大小 */
+            width: 100px;
             height: 100px;
-            border-radius: 50%; /* 圆形头像 */
+            border-radius: 50%;
             object-fit: cover;
             border: 3px solid #F7A8B8; /* 添加粉色边框 */
+        }
+
+        /* 友情链接样式优化 */
+        .friend-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .friend-card {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-decoration: none;
+            color: #333;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        .friend-card:hover {
+            background: #F7A8B8; /* 淡粉色 */
+            color: white;
+        }
+
+        /* 社交链接图标优化 */
+        .social-links a {
+            text-decoration: none;
+            color: #333;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .social-links a:hover {
+            color: #F7A8B8;
         }
     </style>
 </head>
@@ -123,7 +192,13 @@
 
         <section id="blog" class="section">
             <h2>博客内容</h2>
-            <div class="blog-container" id="blog-list"></div>
+            <div class="blog-container">
+                <div class="blog-post">
+                    <h3>test</h3>
+                    <p>test1</p>
+                    <a href="1.html">阅读全文</a>
+                </div>
+            </div>
         </section>
 
         <section id="friends" class="section">
@@ -132,29 +207,6 @@
                 <a href="https://hhh2309.github.io" target="_blank" class="friend-card">猫猫的个人主页！</a>
             </div>
         </section>
-
-        <style>
-            .friend-links {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 15px;
-                margin-top: 15px;
-            }
-            .friend-card {
-                background: white;
-                padding: 10px 15px;
-                border-radius: 5px;
-                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-                text-decoration: none;
-                color: #333;
-                font-size: 16px;
-                transition: 0.3s;
-            }
-            .friend-card:hover {
-                background: #F7A8B8; /* 淡粉色 */
-                color: white;
-            }
-        </style>
 
         <section id="contact" class="section">
             <h2>联系方式</h2>
@@ -166,7 +218,11 @@
         <section id="social" class="section">
             <h2>社交链接</h2>
             <ul class="social-links">
-                <li><a href="https://github.com/lagrange2025" target="_blank">GitHub</a></li>
+                <li>
+                    <a href="https://github.com/lagrange2025" target="_blank">
+                        <span>GitHub</span>
+                    </a>
+                </li>
             </ul>
         </section>
     </div>
@@ -176,34 +232,28 @@
     </footer>
 
     <script>
-        // 博客文章数据
-        const blogPosts = [
-            { title: "第一篇文章", content: "这是第一篇博客文章的简介...", link: "post1.html" },
-            { title: "第二篇文章", content: "这是第二篇博客文章的简介...", link: "post2.html" },
-            { title: "第三篇文章", content: "这是一篇示例博客...", link: "post3.html" }
-        ];
+        document.addEventListener("DOMContentLoaded", function () {
+            const sections = document.querySelectorAll("section");
+            const navLinks = document.querySelectorAll("nav a");
 
-        // 生成博客列表
-        function renderBlogPosts() {
-            const blogList = document.getElementById("blog-list");
-            blogList.innerHTML = ""; // 清空现有内容
+            window.addEventListener("scroll", function () {
+                let current = "";
 
-            blogPosts.forEach(post => {
-                const postElement = document.createElement("div");
-                postElement.classList.add("blog-post");
+                sections.forEach((section) => {
+                    const sectionTop = section.offsetTop - 60;
+                    if (window.scrollY >= sectionTop) {
+                        current = section.getAttribute("id");
+                    }
+                });
 
-                postElement.innerHTML = `
-                    <h3>${post.title}</h3>
-                    <p>${post.content}</p>
-                    <a href="${post.link}">阅读全文</a>
-                `;
-
-                blogList.appendChild(postElement);
+                navLinks.forEach((link) => {
+                    link.classList.remove("active");
+                    if (link.getAttribute("href") === `#${current}`) {
+                        link.classList.add("active");
+                    }
+                });
             });
-        }
-
-        // 在页面加载完成后渲染博客列表
-        document.addEventListener("DOMContentLoaded", renderBlogPosts);
+        });
     </script>
 
 </body>
