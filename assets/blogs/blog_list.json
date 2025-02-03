@@ -1,4 +1,4 @@
 [
-    { "title": "test1", "desc": "test", "link": "assets/blogs/1.html" ,"image":"https://lagrange.top/assets/pic/blog1.png"},
-    { "title": "小游戏", "desc": "音游", "link": "EatZako" ,"image":"https://lagrange.top/assets/pic/blog1.png"}
+    { "title": "test1", "desc": "test", "link": "https://lagrange.top/assets/blogs/1.html" ,"image":"https://lagrange.top/assets/pic/blog1.png"},
+    { "title": "小游戏", "desc": "音游", "link": "https://lagrange.top/EatZako" ,"image":"https://lagrange.top/assets/pic/blog1.png"}
 ]
