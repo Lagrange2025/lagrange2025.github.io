@@ -22,35 +22,43 @@
     </div>
   </div>
 
-  <!-- 引入Firebase SDK -->
+  <!-- 引入 Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.5.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.5.0/firebase-database.js"></script>
-  <script>
-    // Firebase配置（从Firebase控制台获取）
-    const firebaseConfig = {
-    apiKey: "AIzaSyARwqkIO3fhkgUyJMJKzdOSJsl6Wv2oYyY",
-    authDomain: "lagrangechatbox.firebaseapp.com",
-    databaseURL: "https://lagrangechatbox-default-rtdb.firebaseio.com",
-    projectId: "lagrangechatbox",
-    storageBucket: "lagrangechatbox.firebasestorage.app",
-    messagingSenderId: "543262935620",
-    appId: "1:543262935620:web:c0e5a3b459513d799e4a11",
-    measurementId: "G-1MLL54LM78"
-  };
 
-    // 初始化Firebase
+  <script>
+    // Firebase 配置（从 Firebase 控制台获取）
+    const firebaseConfig = {
+    apiKey: "AIzaSyARwqkIO3fhkgUyJMJKzdOSJsl6Wv2oYyY",
+    authDomain: "lagrangechatbox.firebaseapp.com",
+    databaseURL: "https://lagrangechatbox-default-rtdb.firebaseio.com",
+    projectId: "lagrangechatbox",
+    storageBucket: "lagrangechatbox.firebasestorage.app",
+    messagingSenderId: "543262935620",
+    appId: "1:543262935620:web:c0e5a3b459513d799e4a11",
+    measurementId: "G-1MLL54LM78"
+  };
+
+    // 初始化 Firebase
     const app = firebase.initializeApp(firebaseConfig);
     const database = firebase.database(app);
 
-    // 获取消息元素
+    // 获取 messages 路径的引用
     const messagesRef = database.ref('messages');
 
-    // 监听数据库变化，实时获取新消息
+    // 获取本地存储的昵称，若没有则提示用户输入
+    let username = localStorage.getItem('username');
+    if (!username) {
+      username = prompt('请输入您的昵称：');
+      localStorage.setItem('username', username);
+    }
+
+    // 监听 Firebase 中的消息，并实时显示
     messagesRef.on('child_added', (snapshot) => {
       const messageData = snapshot.val();
       const messagesDiv = document.getElementById('messages');
       const messageElem = document.createElement('div');
-      messageElem.textContent = messageData.user + ': ' + messageData.text;
+      messageElem.textContent = `${messageData.user}: ${messageData.text}`;
       messagesDiv.appendChild(messageElem);
     });
 
@@ -58,15 +66,15 @@
     function sendMessage() {
       const messageInput = document.getElementById('messageInput');
       const message = messageInput.value;
-      if (message.trim() === '') return;
+      if (message.trim() === '') return;  // 防止发送空消息
 
-      // 存储消息到Firebase
+      // 存储消息到 Firebase
       messagesRef.push({
-        user: '用户昵称',  // 你可以替换为实际用户名或用户ID
+        user: username,  // 使用存储在 localStorage 中的昵称
         text: message
       });
 
-      messageInput.value = ''; // 清空输入框
+      messageInput.value = '';  // 清空输入框
     }
   </script>
 </body>
