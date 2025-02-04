@@ -18,7 +18,7 @@
     <div class="messages" id="messages"></div>
     <div class="input-area">
       <input type="text" id="messageInput" placeholder="输入消息..." />
-      <button onclick="sendMessage()">发送</button>
+      <button id="sendButton">发送</button>
     </div>
   </div>
 
@@ -38,7 +38,7 @@
     appId: "1:543262935620:web:c0e5a3b459513d799e4a11",
     measurementId: "G-1MLL54LM78"
   };
-
+      
     // 初始化 Firebase
     const app = firebase.initializeApp(firebaseConfig);
     const database = firebase.database(app);
@@ -66,6 +66,10 @@
     function sendMessage() {
       const messageInput = document.getElementById('messageInput');
       const message = messageInput.value;
+      
+      // 调试：确认是否调用了函数
+      console.log("发送消息:", message);
+
       if (message.trim() === '') return;  // 防止发送空消息
 
       // 存储消息到 Firebase
@@ -76,6 +80,9 @@
 
       messageInput.value = '';  // 清空输入框
     }
+
+    // 绑定点击事件
+    document.getElementById('sendButton').addEventListener('click', sendMessage);
   </script>
 </body>
 </html>
