@@ -1,43 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Send Custom Email</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Send Email</title>
 </head>
 <body>
-    <h1>Send Custom Email</h1>
-    <form id="email-form">
-        <input type="email" id="email" placeholder="Enter recipient's email" required><br>
-        <input type="text" id="subject" placeholder="Enter email subject" required><br>
-        <textarea id="message" placeholder="Enter your message" rows="4" required></textarea><br>
-        <button type="submit">Send Email</button>
-    </form>
+  <h1>Send Email</h1>
+  <form id="emailForm">
+    <label for="email">Recipient Email:</label>
+    <input type="email" id="email" name="email" required><br><br>
 
-    <script>
-        const form = document.getElementById('email-form');
+    <label for="subject">Subject:</label>
+    <input type="text" id="subject" name="subject" required><br><br>
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+    <label for="message">Message:</label>
+    <textarea id="message" name="message" required></textarea><br><br>
 
-            // 获取表单输入的值
-            const email = document.getElementById('email').value;
-            const subject = document.getElementById('subject').value;
-            const message = document.getElementById('message').value;
+    <button type="submit">Send Email</button>
+  </form>
 
-            // 发送 POST 请求到 Cloudflare Workers
-            const response = await fetch('https://https://resendmail.1740959587.workers.dev', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, subject, message })
-            });
+  <div id="responseMessage" style="margin-top: 20px;"></div>
+  <div id="corsMessage" style="margin-top: 20px;"></div> <!-- 用于显示 CORS 响应 -->
 
-            if (response.ok) {
-                alert('Email sent successfully!');
-            } else {
-                alert('Failed to send email');
-            }
-        });
-    </script>
+  <script>
+    document.getElementById('emailForm').addEventListener('submit', async function(event) {
+      event.preventDefault();  // 防止表单默认提交
+
+      const email = document.getElementById('email').value;
+      const subject = document.getElementById('subject').value;
+      const message = document.getElementById('message').value;
+
+      // 发起 POST 请求
+      const response = await fetch('https://resendmail.1740959587.workers.dev', {  // 替换为你的 Worker URL
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          subject: subject,
+          message: message
+        })
+      });
+
+      const responseMessage = document.getElementById('responseMessage');
+      const corsMessage = document.getElementById('corsMessage');
+
+      if (response.ok) {
+        responseMessage.textContent = 'Email sent successfully!';
+        responseMessage.style.color = 'green';
+      } else {
+        const errorText = await response.text();
+        responseMessage.textContent = `Failed to send email: ${errorText}`;
+        responseMessage.style.color = 'red';
+      }
+
+      // 检查 CORS 响应头
+      const corsAllowedOrigin = response.headers.get('Access-Control-Allow-Origin');
+      if (corsAllowedOrigin) {
+        corsMessage.textContent = `CORS allowed from: ${corsAllowedOrigin}`;
+        corsMessage.style.color = 'green';
+      } else {
+        corsMessage.textContent = 'CORS not allowed for this request';
+        corsMessage.style.color = 'red';
+      }
+    });
+  </script>
 </body>
 </html>
