@@ -14,6 +14,7 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
+      flex-direction: column;
     }
 
     h1 {
@@ -22,13 +23,14 @@
       color: #333;
     }
 
-    #emailForm {
+    #loginForm, #emailForm {
       background-color: #ffffff;
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       width: 100%;
       max-width: 500px;
+      display: none; /* 默认隐藏 */
     }
 
     label {
@@ -77,9 +79,23 @@
 </head>
 <body>
 
-  <div>
-    <h1>Send Email</h1>
-    <form id="emailForm">
+  <h1>Send Email</h1>
+
+  <!-- 登录表单 -->
+  <div id="loginForm">
+    <label for="username">Username:</label>
+    <input type="text" id="username" required>
+
+    <label for="password">Password:</label>
+    <input type="password" id="password" required>
+
+    <button id="loginButton">Login</button>
+    <div id="loginMessage" style="color: red; margin-top: 10px;"></div>
+  </div>
+
+  <!-- 邮件表单 -->
+  <div id="emailForm">
+    <form>
       <label for="fromEmail">Sender Email:</label>
       <input type="text" id="fromEmail" name="fromEmail" required><br><br>
 
@@ -99,29 +115,53 @@
   </div>
 
   <script>
-    document.getElementById('emailForm').addEventListener('submit', async function(event) {
-      event.preventDefault();  // 防止表单默认提交
+    // 假设的账号密码（为了演示 purposes，只是一个硬编码的例子）
+    const validUsername = 'admin';
+    const validPassword = 'password123';
 
-      const fromEmail = document.getElementById('fromEmail').value;  // 获取发件人邮箱
-      const email = document.getElementById('email').value;  // 获取收件人邮箱
-      const subject = document.getElementById('subject').value;  // 获取邮件主题
-      const message = document.getElementById('message').value;  // 获取邮件内容
+    // 页面加载时，先显示登录表单
+    document.getElementById('loginForm').style.display = 'block';
 
-      // 发起 POST 请求
-      const response = await fetch('https://resendmail.1740959587.workers.dev', {  // 替换为你的 Worker URL
+    // 登录按钮点击事件
+    document.getElementById('loginButton').addEventListener('click', function(event) {
+      event.preventDefault();
+
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      // 简单的验证
+      if (username === validUsername && password === validPassword) {
+        // 如果验证通过，隐藏登录表单并显示邮件表单
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('emailForm').style.display = 'block';
+      } else {
+        // 如果验证失败，显示错误信息
+        document.getElementById('loginMessage').textContent = 'Invalid username or password!';
+      }
+    });
+
+    // 邮件表单提交事件
+    document.querySelector('#emailForm form').addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      const fromEmail = document.getElementById('fromEmail').value;
+      const email = document.getElementById('email').value;
+      const subject = document.getElementById('subject').value;
+      const message = document.getElementById('message').value;
+
+      const response = await fetch('https://resendmail.1740959587.workers.dev', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          fromEmail: fromEmail,  // 发送发件人邮箱
+          fromEmail: fromEmail,
           email: email,
           subject: subject,
           message: message
         })
       });
 
-      // 根据响应显示结果
       const responseMessage = document.getElementById('responseMessage');
       if (response.ok) {
         responseMessage.textContent = 'Email sent successfully!';
