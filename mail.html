@@ -26,7 +26,7 @@
             const message = document.getElementById('message').value;
 
             // 发送 POST 请求到 Cloudflare Workers
-            const response = await fetch('https://email-sender.your-workers.workers.dev', {
+            const response = await fetch('https://resendmail.1740959587.workers.dev', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, subject, message })
