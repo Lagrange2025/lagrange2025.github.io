@@ -14,17 +14,30 @@
             height: 100vh;
             background-color: #008000;
             overflow: hidden;
+            flex-direction: column;
         }
         canvas {
             border: 5px solid #222;
             background-color: #3e8e41;
+            margin-bottom: 20px;
         }
         #scoreboard {
-            position: absolute;
-            top: 20px;
-            left: 20px;
             font-size: 20px;
             color: white;
+        }
+        .control-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #directionCanvas {
+            width: 150px;
+            height: 150px;
+            margin: 10px;
+        }
+        #powerSlider {
+            width: 300px;
+            margin: 10px;
         }
     </style>
 </head>
@@ -36,10 +49,18 @@
         <div>Game Status: <span id="gameStatus">In Progress</span></div>
     </div>
     <canvas id="poolTable" width="800" height="400"></canvas>
+    
+    <div class="control-container">
+        <canvas id="directionCanvas"></canvas>
+        <input id="powerSlider" type="range" min="0" max="100" value="50">
+        <div>Power: <span id="powerValue">50</span></div>
+    </div>
 
     <script>
         const canvas = document.getElementById('poolTable');
         const ctx = canvas.getContext('2d');
+        const directionCanvas = document.getElementById('directionCanvas');
+        const directionCtx = directionCanvas.getContext('2d');
         const tableWidth = canvas.width;
         const tableHeight = canvas.height;
 
@@ -70,6 +91,10 @@
         const pocketSound = new Audio('pocket.mp3');
         const foulSound = new Audio('foul.mp3');
 
+        let selectedAngle = 0;  // Initial angle for the direction
+        let powerLevel = 50;  // Initial power level
+
+        // Draw ball function
         function drawBall(ball) {
             ctx.beginPath();
             ctx.arc(ball.x, ball.y, ballRadius, 0, Math.PI * 2);
@@ -78,12 +103,60 @@
             ctx.closePath();
         }
 
+        // Draw the pool table
         function drawTable() {
             ctx.clearRect(0, 0, tableWidth, tableHeight);
             ctx.fillStyle = 'green';
             ctx.fillRect(0, 0, tableWidth, tableHeight);
         }
 
+        // Draw direction control
+        function drawDirectionControl() {
+            const radius = 60;
+            directionCtx.clearRect(0, 0, directionCanvas.width, directionCanvas.height);
+            directionCtx.beginPath();
+            directionCtx.arc(75, 75, radius, 0, Math.PI * 2);
+            directionCtx.fillStyle = '#333';
+            directionCtx.fill();
+            directionCtx.lineWidth = 5;
+            directionCtx.strokeStyle = '#000';
+            directionCtx.stroke();
+
+            // Draw direction arrow
+            const arrowX = 75 + Math.cos(selectedAngle) * radius;
+            const arrowY = 75 + Math.sin(selectedAngle) * radius;
+            directionCtx.beginPath();
+            directionCtx.moveTo(75, 75);
+            directionCtx.lineTo(arrowX, arrowY);
+            directionCtx.stroke();
+        }
+
+        // Handle mouse or touch input to select angle
+        let isSelectingAngle = false;
+        directionCanvas.addEventListener('mousedown', (e) => {
+            isSelectingAngle = true;
+            updateDirection(e);
+        });
+
+        directionCanvas.addEventListener('mousemove', (e) => {
+            if (isSelectingAngle) {
+                updateDirection(e);
+            }
+        });
+
+        directionCanvas.addEventListener('mouseup', () => {
+            isSelectingAngle = false;
+        });
+
+        function updateDirection(e) {
+            const rect = directionCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left - 75;
+            const y = e.clientY - rect.top - 75;
+            selectedAngle = Math.atan2(y, x);
+            drawDirectionControl();
+        }
+
+        // Move the ball and apply friction
         function moveBall(ball) {
             ball.x += ball.vx;
             ball.y += ball.vy;
@@ -98,6 +171,7 @@
             }
         }
 
+        // Collision detection
         function collision(ball1, ball2) {
             const dx = ball1.x - ball2.x;
             const dy = ball1.y - ball2.y;
@@ -116,6 +190,7 @@
             }
         }
 
+        // Boundary collision handling
         function boundaryCollision(ball) {
             if (ball.x + ballRadius > tableWidth || ball.x - ballRadius < 0) {
                 ball.vx = -ball.vx;
@@ -127,10 +202,12 @@
             }
         }
 
+        // Check if ball goes into pocket
         function checkPocket(ball) {
             return ball.x < 0 || ball.x > tableWidth || ball.y < 0 || ball.y > tableHeight;
         }
 
+        // Pocket ball logic
         function pocketBall(ball) {
             pocketSound.play(); // Play pocket sound
             ballsRemaining--;
@@ -153,20 +230,24 @@
             ball.vy = 0;
         }
 
+        // Update score on the screen
         function updateScore() {
             document.getElementById('score1').textContent = player1Score;
             document.getElementById('score2').textContent = player2Score;
         }
 
+        // Update game status on the screen
         function updateGameStatus() {
             document.getElementById('gameStatus').textContent = gameStatus;
         }
 
+        // Switch turns
         function switchTurn() {
             turn = turn === 1 ? 2 : 1;
             document.getElementById('turn').textContent = 'Player ' + turn;
         }
 
+        // Draw function
         function draw() {
             drawTable();
             drawBall(cueBall);
@@ -186,32 +267,18 @@
             requestAnimationFrame(draw);
         }
 
-        // Mouse and touch control for cue ball
-        let isTouching = false;
-        let touchStartX, touchStartY, touchEndX, touchEndY;
-
-        canvas.addEventListener('touchstart', (e) => {
-            isTouching = true;
-            const touch = e.touches[0];
-            touchStartX = touch.pageX - canvas.offsetLeft;
-            touchStartY = touch.pageY - canvas.offsetTop;
+        // Power slider functionality
+        document.getElementById('powerSlider').addEventListener('input', function () {
+            powerLevel = this.value;
+            document.getElementById('powerValue').textContent = powerLevel;
         });
 
-        canvas.addEventListener('touchmove', (e) => {
-            if (isTouching) {
-                const touch = e.touches[0];
-                touchEndX = touch.pageX - canvas.offsetLeft;
-                touchEndY = touch.pageY - canvas.offsetTop;
-
-                // Calculate velocity based on touch drag distance
-                cueBall.vx = (touchEndX - touchStartX) / 10;
-                cueBall.vy = (touchEndY - touchStartY) / 10;
-            }
-        });
-
-        canvas.addEventListener('touchend', () => {
-            isTouching = false;
-            switchTurn();
+        // Shoot ball based on direction and power
+        canvas.addEventListener('click', () => {
+            const speed = (powerLevel / 100) * maxSpeed;
+            cueBall.vx = Math.cos(selectedAngle) * speed;
+            cueBall.vy = Math.sin(selectedAngle) * speed;
+            switchTurn(); // Change turn after shooting
         });
 
         draw(); // Start the game loop
