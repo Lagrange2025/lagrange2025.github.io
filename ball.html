@@ -12,18 +12,23 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #008000;
+            background: linear-gradient(45deg, #d0e1f9, #b0c1d7);
             overflow: hidden;
             flex-direction: column;
         }
         canvas {
-            border: 5px solid #222;
+            border: 5px solid #444;
             background-color: #3e8e41;
             margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         #scoreboard {
             font-size: 20px;
             color: white;
+            margin: 10px 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 10px;
+            border-radius: 10px;
         }
         .control-container {
             display: flex;
@@ -39,6 +44,11 @@
             width: 300px;
             margin: 10px;
         }
+        .power-value {
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
@@ -53,7 +63,7 @@
     <div class="control-container">
         <canvas id="directionCanvas"></canvas>
         <input id="powerSlider" type="range" min="0" max="100" value="50">
-        <div>Power: <span id="powerValue">50</span></div>
+        <div class="power-value">Power: <span id="powerValue">50</span></div>
     </div>
 
     <script>
@@ -103,11 +113,31 @@
             ctx.closePath();
         }
 
-        // Draw the pool table
+        // Draw the pool table with pockets
         function drawTable() {
             ctx.clearRect(0, 0, tableWidth, tableHeight);
-            ctx.fillStyle = 'green';
+
+            // Background with gradient
+            const gradient = ctx.createLinearGradient(0, 0, tableWidth, tableHeight);
+            gradient.addColorStop(0, '#006400');
+            gradient.addColorStop(1, '#4caf50');
+            ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, tableWidth, tableHeight);
+
+            // Draw pockets
+            ctx.fillStyle = 'black';
+            const pockets = [
+                { x: 0, y: 0 }, { x: tableWidth, y: 0 },
+                { x: 0, y: tableHeight }, { x: tableWidth, y: tableHeight },
+                { x: tableWidth / 2, y: 0 }, { x: tableWidth / 2, y: tableHeight },
+                { x: 0, y: tableHeight / 2 }, { x: tableWidth, y: tableHeight / 2 }
+            ];
+            pockets.forEach(pocket => {
+                ctx.beginPath();
+                ctx.arc(pocket.x, pocket.y, 20, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.closePath();
+            });
         }
 
         // Draw direction control
