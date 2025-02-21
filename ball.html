@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台球游戏</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #008000;
+            overflow: hidden;
+        }
+        canvas {
+            border: 5px solid #222;
+            background-color: #3e8e41;
+        }
+        #scoreboard {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 20px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div id="scoreboard">
+        <div>Player 1 Score: <span id="score1">0</span></div>
+        <div>Player 2 Score: <span id="score2">0</span></div>
+        <div>Turn: <span id="turn">Player 1</span></div>
+        <div>Game Status: <span id="gameStatus">In Progress</span></div>
+    </div>
+    <canvas id="poolTable" width="800" height="400"></canvas>
+
+    <script>
+        const canvas = document.getElementById('poolTable');
+        const ctx = canvas.getContext('2d');
+        const tableWidth = canvas.width;
+        const tableHeight = canvas.height;
+
+        const ballRadius = 10;
+        const friction = 0.98;
+        const maxSpeed = 10;
+        let turn = 1;  // Player 1 starts
+        let player1Score = 0;
+        let player2Score = 0;
+        let gameStatus = 'In Progress';  // Game state
+        let ballsRemaining = 8;  // 8 balls in the game, including the 8 ball.
+
+        // Balls: 8 balls + cue ball
+        const cueBall = { x: tableWidth / 2, y: tableHeight / 2, vx: 0, vy: 0, color: 'white', id: 'cue' };
+        const balls = [
+            { x: 150, y: 200, vx: 0, vy: 0, color: 'red', id: '1' },
+            { x: 250, y: 200, vx: 0, vy: 0, color: 'blue', id: '2' },
+            { x: 350, y: 200, vx: 0, vy: 0, color: 'green', id: '3' },
+            { x: 450, y: 200, vx: 0, vy: 0, color: 'yellow', id: '4' },
+            { x: 550, y: 200, vx: 0, vy: 0, color: 'purple', id: '5' },
+            { x: 650, y: 200, vx: 0, vy: 0, color: 'orange', id: '6' },
+            { x: 750, y: 200, vx: 0, vy: 0, color: 'brown', id: '7' },
+            { x: 400, y: 100, vx: 0, vy: 0, color: 'black', id: '8' } // 8 ball
+        ];
+
+        // Load sound effects
+        const hitSound = new Audio('hit.mp3');
+        const pocketSound = new Audio('pocket.mp3');
+        const foulSound = new Audio('foul.mp3');
+
+        function drawBall(ball) {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ballRadius, 0, Math.PI * 2);
+            ctx.fillStyle = ball.color;
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawTable() {
+            ctx.clearRect(0, 0, tableWidth, tableHeight);
+            ctx.fillStyle = 'green';
+            ctx.fillRect(0, 0, tableWidth, tableHeight);
+        }
+
+        function moveBall(ball) {
+            ball.x += ball.vx;
+            ball.y += ball.vy;
+
+            ball.vx *= friction;
+            ball.vy *= friction;
+
+            const speed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
+            if (speed > maxSpeed) {
+                ball.vx = (ball.vx / speed) * maxSpeed;
+                ball.vy = (ball.vy / speed) * maxSpeed;
+            }
+        }
+
+        function collision(ball1, ball2) {
+            const dx = ball1.x - ball2.x;
+            const dy = ball1.y - ball2.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < ballRadius * 2) {
+                const angle = Math.atan2(dy, dx);
+                const speed1 = Math.sqrt(ball1.vx * ball1.vx + ball1.vy * ball1.vy);
+                const speed2 = Math.sqrt(ball2.vx * ball2.vx + ball2.vy * ball2.vy);
+
+                ball1.vx = speed2 * Math.cos(angle);
+                ball1.vy = speed2 * Math.sin(angle);
+                ball2.vx = speed1 * Math.cos(angle + Math.PI);
+                ball2.vy = speed1 * Math.sin(angle + Math.PI);
+                hitSound.play(); // Play hit sound
+            }
+        }
+
+        function boundaryCollision(ball) {
+            if (ball.x + ballRadius > tableWidth || ball.x - ballRadius < 0) {
+                ball.vx = -ball.vx;
+                ball.x = ball.x < ballRadius ? ballRadius : (ball.x > tableWidth - ballRadius ? tableWidth - ballRadius : ball.x);
+            }
+            if (ball.y + ballRadius > tableHeight || ball.y - ballRadius < 0) {
+                ball.vy = -ball.vy;
+                ball.y = ball.y < ballRadius ? ballRadius : (ball.y > tableHeight - ballRadius ? tableHeight - ballRadius : ball.y);
+            }
+        }
+
+        function checkPocket(ball) {
+            return ball.x < 0 || ball.x > tableWidth || ball.y < 0 || ball.y > tableHeight;
+        }
+
+        function pocketBall(ball) {
+            pocketSound.play(); // Play pocket sound
+            ballsRemaining--;
+            if (ball.id === '8') {
+                gameStatus = 'Player ' + turn + ' Wins!';
+                updateGameStatus();
+            } else {
+                if (turn === 1) {
+                    player1Score++;
+                } else {
+                    player2Score++;
+                }
+                updateScore();
+            }
+
+            // Reset ball position for simplicity
+            ball.x = Math.random() * (tableWidth - 50) + 50;
+            ball.y = Math.random() * (tableHeight - 50) + 50;
+            ball.vx = 0;
+            ball.vy = 0;
+        }
+
+        function updateScore() {
+            document.getElementById('score1').textContent = player1Score;
+            document.getElementById('score2').textContent = player2Score;
+        }
+
+        function updateGameStatus() {
+            document.getElementById('gameStatus').textContent = gameStatus;
+        }
+
+        function switchTurn() {
+            turn = turn === 1 ? 2 : 1;
+            document.getElementById('turn').textContent = 'Player ' + turn;
+        }
+
+        function draw() {
+            drawTable();
+            drawBall(cueBall);
+            balls.forEach(drawBall);
+
+            balls.forEach(moveBall);
+            balls.forEach(ball => collision(cueBall, ball));
+
+            balls.forEach(boundaryCollision);
+
+            balls.forEach(ball => {
+                if (checkPocket(ball)) {
+                    pocketBall(ball);
+                }
+            });
+
+            requestAnimationFrame(draw);
+        }
+
+        // Mouse and touch control for cue ball
+        let isTouching = false;
+        let touchStartX, touchStartY, touchEndX, touchEndY;
+
+        canvas.addEventListener('touchstart', (e) => {
+            isTouching = true;
+            const touch = e.touches[0];
+            touchStartX = touch.pageX - canvas.offsetLeft;
+            touchStartY = touch.pageY - canvas.offsetTop;
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (isTouching) {
+                const touch = e.touches[0];
+                touchEndX = touch.pageX - canvas.offsetLeft;
+                touchEndY = touch.pageY - canvas.offsetTop;
+
+                // Calculate velocity based on touch drag distance
+                cueBall.vx = (touchEndX - touchStartX) / 10;
+                cueBall.vy = (touchEndY - touchStartY) / 10;
+            }
+        });
+
+        canvas.addEventListener('touchend', () => {
+            isTouching = false;
+            switchTurn();
+        });
+
+        draw(); // Start the game loop
+    </script>
+</body>
+</html>
