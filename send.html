@@ -67,9 +67,6 @@
       <label for="password">密码:</label>
       <input type="password" id="password" name="password" required>
       
-      <label for="fromEmail">发件人邮箱（不可更改）:</label>
-      <input type="email" id="fromEmail" name="fromEmail" required readonly>
-      
       <label for="toEmail">收件人邮箱:</label>
       <input type="email" id="toEmail" name="toEmail" required>
       
@@ -127,16 +124,13 @@
           body: JSON.stringify(data)
         });
 
-        const responseText = await response.text();
+        const responseJson = await response.json();
         const responseMessage = document.getElementById('responseMessage');
 
         if (response.ok) {
-          // 更新发件人邮箱
-          const jsonResponse = await response.json();
-          document.getElementById('fromEmail').value = jsonResponse.fromEmail;
-          responseMessage.innerHTML = `<p class="success">${responseText}</p>`;
+          responseMessage.innerHTML = `<p class="success">邮件发送成功！</p>`;
         } else {
-          responseMessage.innerHTML = `<p class="error">${responseText}</p>`;
+          responseMessage.innerHTML = `<p class="error">${responseJson.message || '发送邮件失败'}</p>`;
         }
       } catch (error) {
         const responseMessage = document.getElementById('responseMessage');
