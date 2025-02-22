@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>邮件发送</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .error {
+      color: red;
+      text-align: center;
+    }
+    .success {
+      color: green;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>发送邮件</h1>
+    <form id="emailForm">
+      <label for="account">账号:</label>
+      <input type="text" id="account" name="account" required>
+      
+      <label for="password">密码:</label>
+      <input type="password" id="password" name="password" required>
+      
+      <label for="fromEmail">发件人邮箱:</label>
+      <input type="email" id="fromEmail" name="fromEmail" required readonly>
+      
+      <label for="toEmail">收件人邮箱:</label>
+      <input type="email" id="toEmail" name="toEmail" required>
+      
+      <label for="subject">主题:</label>
+      <input type="text" id="subject" name="subject" required>
+      
+      <label for="message">内容:</label>
+      <textarea id="message" name="message" rows="6" required></textarea>
+      
+      <button type="submit">发送邮件</button>
+    </form>
+
+    <div id="responseMessage"></div>
+  </div>
+
+  <script>
+    // 哈希密码函数
+    async function hashPassword(password) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+      return hashHex;
+    }
+
+    document.getElementById('emailForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      // 获取表单数据
+      const account = document.getElementById('account').value;
+      const password = document.getElementById('password').value;
+      const toEmail = document.getElementById('toEmail').value;
+      const subject = document.getElementById('subject').value;
+      const message = document.getElementById('message').value;
+
+      // 对密码进行哈希处理
+      const hashedPassword = await hashPassword(password);
+
+      // 请求数据
+      const data = {
+        account,
+        password: hashedPassword,  // 使用哈希后的密码
+        toEmail,
+        subject,
+        message
+      };
+
+      try {
+        const response = await fetch('YOUR_BACKEND_URL', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        const responseText = await response.text();
+        const responseMessage = document.getElementById('responseMessage');
+
+        if (response.ok) {
+          // 更新发件人邮箱
+          const jsonResponse = await response.json();
+          document.getElementById('fromEmail').value = jsonResponse.fromEmail;
+          responseMessage.innerHTML = `<p class="success">${responseText}</p>`;
+        } else {
+          responseMessage.innerHTML = `<p class="error">${responseText}</p>`;
+        }
+      } catch (error) {
+        const responseMessage = document.getElementById('responseMessage');
+        responseMessage.innerHTML = `<p class="error">发生错误: ${error.message}</p>`;
+      }
+    });
+  </script>
+</body>
+</html>
