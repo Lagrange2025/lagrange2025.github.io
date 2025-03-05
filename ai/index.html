@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>AI聊天界面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .chat-messages {
+            height: 500px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: white;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 5px;
+        }
+        .user-message {
+            background-color: #e6f2ff;
+            text-align: right;
+        }
+        .ai-message {
+            background-color: #f0f0f0;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div id="chat-messages" class="chat-messages"></div>
+        <div class="input-area">
+            <textarea id="user-input" placeholder="输入您的消息..."></textarea>
+            <button id="send-btn">发送</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
