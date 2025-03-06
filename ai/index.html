@@ -169,7 +169,6 @@
                 // 流式处理响应
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
-                let aiResponse = '';
 
                 // 创建一个新的 AI 消息元素
                 const messageDiv = document.createElement('div');
@@ -183,24 +182,13 @@
                     const chunk = decoder.decode(value, { stream: true });
                     console.log("Received chunk:", chunk);  // 调试用，查看每个块的内容
 
-                    try {
-                        // 只提取 content 部分
-                        const data = JSON.parse(chunk);
-                        if (data.choices && data.choices[0] && data.choices[0].delta && data.choices[0].delta.content) {
-                            aiResponse += data.choices[0].delta.content;
-                            messageDiv.textContent = aiResponse; // 实时更新消息内容
-                        }
-                    } catch (error) {
-                        console.error("解析错误:", error);
-                    }
+                    // 立即显示接收到的 chunk
+                    messageDiv.textContent += chunk;
 
                     // 保持滚动条在底部
                     const chatMessages = document.getElementById('chat-messages');
                     chatMessages.scrollTop = chatMessages.scrollHeight;
                 }
-
-                // 将AI的回应保存到历史
-                conversationHistory.push({ role: 'assistant', content: aiResponse });
 
             } catch (error) {
                 addMessage(`错误: ${error.message}`, false);
