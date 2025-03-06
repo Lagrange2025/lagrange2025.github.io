@@ -131,6 +131,9 @@
             chatMessages.scrollTop = chatMessages.scrollHeight; // 滚动到底部
         }
 
+        // 初始化对话历史
+        let conversationHistory = [];
+
         // 发送消息到后端
         async function sendMessage() {
             const userInput = document.getElementById('user-input');
@@ -143,9 +146,12 @@
             // 计算哈希
             const hashedAuth = await hashString(`${username}:${password}`);
 
-            // **显示用户消息**
+            // 显示用户消息
             addMessage(message, true);
             userInput.value = ''; // 清空输入框
+
+            // 将当前消息添加到对话历史
+            conversationHistory.push({ role: 'user', content: message });
 
             try {
                 // 发起请求
@@ -155,7 +161,9 @@
                         'Content-Type': 'application/json',
                         'Authorization': `Hash ${hashedAuth}`
                     },
-                    body: JSON.stringify({ prompt: message })
+                    body: JSON.stringify({
+                        prompt: conversationHistory.map(msg => msg.content).join("\n") // 将所有对话传递给后端
+                    })
                 });
 
                 // 流式处理响应
@@ -181,6 +189,10 @@
                     const chatMessages = document.getElementById('chat-messages');
                     chatMessages.scrollTop = chatMessages.scrollHeight;
                 }
+
+                // 将AI的回应保存到历史
+                conversationHistory.push({ role: 'assistant', content: aiResponse });
+
             } catch (error) {
                 addMessage(`错误: ${error.message}`, false);
             }
