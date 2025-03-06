@@ -39,7 +39,7 @@
             max-width: 70%;
             word-wrap: break-word;
             cursor: pointer;
-            user-select: text;
+            user-select: text; /* 允许手动选中复制 */
         }
         .user-message {
             background: #007bff;
@@ -169,6 +169,7 @@
                 // 流式处理响应
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
+                let aiResponse = '';
 
                 // 创建一个新的 AI 消息元素
                 const messageDiv = document.createElement('div');
@@ -177,25 +178,28 @@
 
                 while (true) {
                     const { done, value } = await reader.read();
-                    if (done) break;  // 如果流结束，退出循环
-                    
+                    if (done) break;  // 流结束时退出
+
                     const chunk = decoder.decode(value, { stream: true });
 
-                    try {
-                        // 提取 content 部分
-                        const data = JSON.parse(chunk);
-                        if (data.choices && data.choices[0] && data.choices[0].delta && data.choices[0].delta.content) {
-                            const content = data.choices[0].delta.content;
-                            messageDiv.textContent += content;  // 实时更新消息内容
-                        }
-                    } catch (error) {
-                        console.error("解析错误:", error);
+                    // 使用正则表达式来提取 "content" 后面的内容
+                    const regex = /{"content":"(.*?)"}/g;
+                    let match;
+                    while ((match = regex.exec(chunk)) !== null) {
+                        const content = match[1];  // 提取内容
+                        aiResponse += content;  // 将内容累加到 aiResponse 中
+
+                        // 实时更新消息内容
+                        messageDiv.textContent = aiResponse;
                     }
 
                     // 保持滚动条在底部
                     const chatMessages = document.getElementById('chat-messages');
                     chatMessages.scrollTop = chatMessages.scrollHeight;
                 }
+
+                // 将AI的回应保存到历史
+                conversationHistory.push({ role: 'assistant', content: aiResponse });
 
             } catch (error) {
                 addMessage(`错误: ${error.message}`, false);
