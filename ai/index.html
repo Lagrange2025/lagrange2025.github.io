@@ -178,8 +178,10 @@
 
                 while (true) {
                     const { done, value } = await reader.read();
-                    if (done) break;
+                    if (done) break;  // 如果流结束，退出循环
+                    
                     const chunk = decoder.decode(value, { stream: true });
+                    console.log("Received chunk:", chunk);  // 调试用，查看每个块的内容
 
                     try {
                         // 只提取 content 部分
