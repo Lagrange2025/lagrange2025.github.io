@@ -57,8 +57,14 @@
             padding: 15px;
             background: white;
             border-top: 1px solid #ddd;
+            flex-direction: column;
         }
-        #user-input {
+        .input-fields {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+        }
+        #user-input, #username, #password {
             flex: 1;
             padding: 10px;
             border: 1px solid #ddd;
@@ -83,13 +89,17 @@
     <div id="chat-container">
         <div id="chat-messages"></div>
         <div class="input-area">
+            <div class="input-fields">
+                <input type="text" id="username" placeholder="请输入用户名" />
+                <input type="password" id="password" placeholder="请输入密码" />
+            </div>
             <input type="text" id="user-input" placeholder="输入消息..." />
             <button onclick="sendMessage()">发送</button>
         </div>
     </div>
 
     <script>
-        const WORKER_URL = "https://your-worker.workers.dev";  // 替换为你的 Worker 地址
+        const WORKER_URL = "https://ai.1740959587.workers.dev";  // 替换为你的 Worker 地址
 
         // SHA-256 哈希函数
         async function hashString(str) {
@@ -124,15 +134,13 @@
         // 发送消息到后端
         async function sendMessage() {
             const userInput = document.getElementById('user-input');
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
             const message = userInput.value.trim();
-            if (!message) return;
 
-            // **手动输入账号和密码**
-            const username = prompt("请输入用户名:");
-            const password = prompt("请输入密码:");
-            if (!username || !password) return alert("用户名或密码不能为空！");
+            if (!username || !password || !message) return alert("用户名、密码或消息不能为空！");
 
-            // **计算哈希**
+            // 计算哈希
             const hashedAuth = await hashString(`${username}:${password}`);
 
             // **显示用户消息**
@@ -140,7 +148,7 @@
             userInput.value = ''; // 清空输入框
 
             try {
-                // **发起请求**
+                // 发起请求
                 const response = await fetch(WORKER_URL, {
                     method: 'POST',
                     headers: {
@@ -150,12 +158,12 @@
                     body: JSON.stringify({ prompt: message })
                 });
 
-                // **流式处理响应**
+                // 流式处理响应
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
                 let aiResponse = '';
 
-                // **创建一个新的 AI 消息元素**
+                // 创建一个新的 AI 消息元素
                 const messageDiv = document.createElement('div');
                 messageDiv.className = 'message ai-message';
                 document.getElementById('chat-messages').appendChild(messageDiv);
@@ -165,11 +173,11 @@
                     if (done) break;
                     const chunk = decoder.decode(value, { stream: true });
 
-                    // **实时追加新内容，而不是覆盖**
+                    // 实时追加新内容，而不是覆盖
                     aiResponse += chunk;
                     messageDiv.textContent = aiResponse;
 
-                    // **保持滚动条在底部**
+                    // 保持滚动条在底部
                     const chatMessages = document.getElementById('chat-messages');
                     chatMessages.scrollTop = chatMessages.scrollHeight;
                 }
