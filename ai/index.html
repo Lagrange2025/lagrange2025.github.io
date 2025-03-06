@@ -181,9 +181,16 @@
                     if (done) break;
                     const chunk = decoder.decode(value, { stream: true });
 
-                    // 实时追加新内容，而不是覆盖
-                    aiResponse += chunk;
-                    messageDiv.textContent = aiResponse;
+                    try {
+                        // 只提取 content 部分
+                        const data = JSON.parse(chunk);
+                        if (data.choices && data.choices[0] && data.choices[0].delta && data.choices[0].delta.content) {
+                            aiResponse += data.choices[0].delta.content;
+                            messageDiv.textContent = aiResponse; // 实时更新消息内容
+                        }
+                    } catch (error) {
+                        console.error("解析错误:", error);
+                    }
 
                     // 保持滚动条在底部
                     const chatMessages = document.getElementById('chat-messages');
