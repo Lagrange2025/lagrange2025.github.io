@@ -6,28 +6,26 @@
     <title>DeepSeek 聊天助手</title>
     <style>
         body {
-            margin: 0;
-            padding: 0;
-            font-family: "Arial", sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            font-family: Arial, sans-serif;
             background: #f4f4f9;
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-direction: column;
             height: 100vh;
         }
         #chat-container {
-            width: 100%;
-            max-width: 800px;
-            border-radius: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
             overflow: hidden;
             background: white;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             display: flex;
             flex-direction: column;
-            height: 90vh;
+            flex: 1;
         }
         #chat-messages {
-            flex-grow: 1;
+            flex: 1;
             overflow-y: auto;
             padding: 15px;
             background: #f9f9f9;
@@ -35,64 +33,49 @@
             flex-direction: column;
         }
         .message {
+            margin: 10px 0;
+            padding: 10px 15px;
+            border-radius: 15px;
             max-width: 70%;
-            padding: 12px 16px;
-            margin: 8px 10px;
-            border-radius: 18px;
-            font-size: 16px;
-            line-height: 1.5;
             word-wrap: break-word;
+            cursor: pointer;
+            user-select: text; /* 允许手动选中复制 */
         }
         .user-message {
             background: #007bff;
             color: white;
+            margin-left: auto;
             align-self: flex-end;
-            border-bottom-right-radius: 5px;
         }
         .ai-message {
             background: #e9ecef;
+            margin-right: auto;
             align-self: flex-start;
-            border-bottom-left-radius: 5px;
         }
         .input-area {
+            display: flex;
             padding: 15px;
             background: white;
             border-top: 1px solid #ddd;
         }
-        input {
-            padding: 12px;
+        #user-input {
+            flex: 1;
+            padding: 10px;
             border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 16px;
-            margin-bottom: 10px;
-            width: 100%;
-            transition: border 0.3s ease;
-        }
-        input:focus {
-            border-color: #007bff;
-            outline: none;
+            border-radius: 4px;
+            margin-right: 10px;
         }
         button {
-            padding: 12px 16px;
+            padding: 10px 20px;
             background: #007bff;
             color: white;
-            font-size: 16px;
             border: none;
-            border-radius: 6px;
+            border-radius: 4px;
             cursor: pointer;
-            width: 100%;
-            transition: background 0.3s ease;
         }
-        button:hover {
-            background: #0056b3;
-        }
-        @media (max-width: 768px) {
-            body {
-                padding: 20px;
-            }
-            #chat-container {
-                max-width: 100%;
-            }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
         }
     </style>
 </head>
@@ -100,76 +83,19 @@
     <div id="chat-container">
         <div id="chat-messages"></div>
         <div class="input-area">
-            <input type="text" id="username" placeholder="输入用户名">
-            <input type="password" id="password" placeholder="输入密码">
-            <input type="text" id="user-input" placeholder="输入消息">
+            <input type="text" id="user-input" placeholder="输入消息..." />
             <button onclick="sendMessage()">发送</button>
         </div>
     </div>
 
     <script>
-        // 计算 SHA-256 哈希值
-        async function sha256(message) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(message);
-            const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+        const WORKER_URL = "https://your-worker.workers.dev";  // 替换为你的 Worker 地址
+
+        // SHA-256 哈希函数
+        async function hashString(str) {
+            const hashBuffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-
-        // 发送消息
-        async function sendMessage() {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
-            const userInput = document.getElementById('user-input');
-            const message = userInput.value.trim();
-
-            if (!username || !password || !message) {
-                alert("请输入用户名、密码和消息");
-                return;
-            }
-
-            // 计算哈希
-            const hash = await sha256(`${username}:${password}`);
-
-            // 显示用户消息
-            addMessage(message, true);
-            userInput.value = ''; // 清空输入框
-            userInput.focus(); // 让输入框重新聚焦
-
-            try {
-                const response = await fetch("https://ai.1740959587.workers.dev", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Hash ${hash}`
-                    },
-                    body: JSON.stringify({ prompt: message })
-                });
-
-                // 流式处理 AI 响应
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let aiResponse = '';
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    const chunk = decoder.decode(value, { stream: true });
-                    aiResponse += chunk;
-                    
-                    // 实时更新 AI 消息
-                    const aiMessages = document.getElementsByClassName('ai-message');
-                    const lastMessage = aiMessages[aiMessages.length - 1];
-                    if (lastMessage) {
-                        lastMessage.textContent = aiResponse;
-                    } else {
-                        addMessage(aiResponse, false);
-                    }
-                }
-            } catch (error) {
-                addMessage(`错误: ${error.message}`, false);
-            }
         }
 
         // 添加消息到聊天框
@@ -178,12 +104,84 @@
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
             messageDiv.textContent = content;
+            
+            // 点击复制功能（仅限 AI 回复）
+            if (!isUser) {
+                messageDiv.addEventListener("click", async () => {
+                    try {
+                        await navigator.clipboard.writeText(content);
+                        alert("已复制到剪贴板");
+                    } catch (err) {
+                        console.error("复制失败:", err);
+                    }
+                });
+            }
+
             chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            chatMessages.scrollTop = chatMessages.scrollHeight; // 滚动到底部
         }
 
-        // 让用户名输入框自动聚焦
-        document.getElementById("username").focus();
+        // 发送消息到后端
+        async function sendMessage() {
+            const userInput = document.getElementById('user-input');
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            // **手动输入账号和密码**
+            const username = prompt("请输入用户名:");
+            const password = prompt("请输入密码:");
+            if (!username || !password) return alert("用户名或密码不能为空！");
+
+            // **计算哈希**
+            const hashedAuth = await hashString(`${username}:${password}`);
+
+            // **显示用户消息**
+            addMessage(message, true);
+            userInput.value = ''; // 清空输入框
+
+            try {
+                // **发起请求**
+                const response = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Hash ${hashedAuth}`
+                    },
+                    body: JSON.stringify({ prompt: message })
+                });
+
+                // **流式处理响应**
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let aiResponse = '';
+
+                // **创建一个新的 AI 消息元素**
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message ai-message';
+                document.getElementById('chat-messages').appendChild(messageDiv);
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    const chunk = decoder.decode(value, { stream: true });
+
+                    // **实时追加新内容，而不是覆盖**
+                    aiResponse += chunk;
+                    messageDiv.textContent = aiResponse;
+
+                    // **保持滚动条在底部**
+                    const chatMessages = document.getElementById('chat-messages');
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+            } catch (error) {
+                addMessage(`错误: ${error.message}`, false);
+            }
+        }
+
+        // 回车发送消息
+        document.getElementById('user-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
     </script>
 </body>
 </html>
