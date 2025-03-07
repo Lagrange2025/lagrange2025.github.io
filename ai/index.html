@@ -170,7 +170,7 @@
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
                 let aiResponse = '';
-                let totalTokens = null;
+                let lastTotalTokens = null;
 
                 // 创建一个新的 AI 消息元素
                 const messageDiv = document.createElement('div');
@@ -191,19 +191,19 @@
                         messageDiv.textContent = aiResponse;
                     }
 
-                    // 提取 "total_tokens"
-                    const tokenMatch = /"total_tokens":(\d+)/;
-                    const tokenResult = tokenMatch.exec(chunk);
-                    if (tokenResult) {
-                        totalTokens = tokenResult[1];  // 获取 token 计数
+                    // 提取最后一个 "total_tokens"
+                    const tokenMatch = /"total_tokens":(\d+)/g;
+                    let token;
+                    while ((token = tokenMatch.exec(chunk)) !== null) {
+                        lastTotalTokens = token[1];  // 只存最后一个 total_tokens
                     }
 
                     document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
                 }
 
-                // 添加 token 计数
-                if (totalTokens !== null) {
-                    aiResponse += ` （tkn=${totalTokens}）`;
+                // 仅在 AI 回复 **最终完成后** 添加 "~~~{tkn=***}"
+                if (lastTotalTokens !== null) {
+                    aiResponse += ` （tkn=${lastTotalTokens}）`;
                     messageDiv.textContent = aiResponse;
                 }
 
