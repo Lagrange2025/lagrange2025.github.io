@@ -39,7 +39,7 @@
             max-width: 70%;
             word-wrap: break-word;
             cursor: pointer;
-            user-select: text; /* 允许手动选中复制 */
+            user-select: text;
         }
         .user-message {
             background: #007bff;
@@ -98,112 +98,127 @@
         </div>
     </div>
 
-<script>
-    const WORKER_URL = "https://ai.1740959587.workers.dev";  // 替换为你的 Worker 地址
+    <script>
+        const WORKER_URL = "https://ai.1740959587.workers.dev";  // 替换为你的 Worker 地址
 
-    async function hashString(str) {
-        const hashBuffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-
-    function addMessage(content, isUser) {
-        const chatMessages = document.getElementById('chat-messages');
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
-        messageDiv.textContent = content;
-        
-        if (!isUser) {
-            messageDiv.addEventListener("click", async () => {
-                try {
-                    await navigator.clipboard.writeText(content);
-                    alert("已复制到剪贴板");
-                } catch (err) {
-                    console.error("复制失败:", err);
-                }
-            });
+        // SHA-256 哈希函数
+        async function hashString(str) {
+            const hashBuffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
-        chatMessages.appendChild(messageDiv);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    let conversationHistory = [];
-
-    async function sendMessage() {
-        const userInput = document.getElementById('user-input');
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value.trim();
-        const message = userInput.value.trim();
-
-        if (!username || !password || !message) return alert("用户名、密码或消息不能为空！");
-
-        const hashedAuth = await hashString(`${username}:${password}`);
-
-        addMessage(message, true);
-        userInput.value = '';
-
-        conversationHistory.push({ role: 'user', content: message });
-
-        try {
-            const response = await fetch(WORKER_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Hash ${hashedAuth}`
-                },
-                body: JSON.stringify({
-                    prompt: conversationHistory.map(msg => msg.content).join("\n")
-                })
-            });
-
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let aiResponse = '';
-            let totalTokens = null;
-
+        // 添加消息到聊天框
+        function addMessage(content, isUser) {
+            const chatMessages = document.getElementById('chat-messages');
             const messageDiv = document.createElement('div');
-            messageDiv.className = 'message ai-message';
-            document.getElementById('chat-messages').appendChild(messageDiv);
+            messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+            messageDiv.textContent = content;
+            
+            // 点击复制功能（仅限 AI 回复）
+            if (!isUser) {
+                messageDiv.addEventListener("click", async () => {
+                    try {
+                        await navigator.clipboard.writeText(content);
+                        alert("已复制到剪贴板");
+                    } catch (err) {
+                        console.error("复制失败:", err);
+                    }
+                });
+            }
 
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
 
-                const chunk = decoder.decode(value, { stream: true });
+        // 初始化对话历史
+        let conversationHistory = [];
 
-                const contentRegex = /"content":"(.*?)"/g;
-                const tokenRegex = /"total_tokens":(\d+)/g;
+        // 发送消息到后端
+        async function sendMessage() {
+            const userInput = document.getElementById('user-input');
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const message = userInput.value.trim();
 
-                let match;
-                while ((match = contentRegex.exec(chunk)) !== null) {
-                    aiResponse += match[1];
+            if (!username || !password || !message) return alert("用户名、密码或消息不能为空！");
+
+            // 计算哈希
+            const hashedAuth = await hashString(`${username}:${password}`);
+
+            // 显示用户消息
+            addMessage(message, true);
+            userInput.value = ''; // 清空输入框
+
+            // 将当前消息添加到对话历史
+            conversationHistory.push({ role: 'user', content: message });
+
+            try {
+                // 发起请求
+                const response = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Hash ${hashedAuth}`
+                    },
+                    body: JSON.stringify({
+                        prompt: conversationHistory.map(msg => msg.content).join("\n")
+                    })
+                });
+
+                // 流式处理响应
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let aiResponse = '';
+                let totalTokens = null;
+
+                // 创建一个新的 AI 消息元素
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message ai-message';
+                document.getElementById('chat-messages').appendChild(messageDiv);
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value, { stream: true });
+
+                    // 提取 "content" 的内容
+                    const contentMatch = /"content":"(.*?)"/g;
+                    let match;
+                    while ((match = contentMatch.exec(chunk)) !== null) {
+                        aiResponse += match[1];
+                        messageDiv.textContent = aiResponse;
+                    }
+
+                    // 提取 "total_tokens"
+                    const tokenMatch = /"total_tokens":(\d+)/;
+                    const tokenResult = tokenMatch.exec(chunk);
+                    if (tokenResult) {
+                        totalTokens = tokenResult[1];  // 获取 token 计数
+                    }
+
+                    document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+                }
+
+                // 添加 token 计数
+                if (totalTokens !== null) {
+                    aiResponse += ` （tkn=${totalTokens}）`;
                     messageDiv.textContent = aiResponse;
                 }
 
-                while ((match = tokenRegex.exec(chunk)) !== null) {
-                    totalTokens = match[1];
-                }
+                // 记录 AI 回复
+                conversationHistory.push({ role: 'assistant', content: aiResponse });
 
-                const chatMessages = document.getElementById('chat-messages');
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+            } catch (error) {
+                addMessage(`错误: ${error.message}`, false);
             }
-
-            if (totalTokens !== null) {
-                aiResponse += `（token=${totalTokens}）`;
-                messageDiv.textContent = aiResponse;
-            }
-
-            conversationHistory.push({ role: 'assistant', content: aiResponse });
-
-        } catch (error) {
-            addMessage(`错误: ${error.message}`, false);
         }
-    }
 
-    document.getElementById('user-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendMessage();
-    });
-</script>
+        // 回车发送消息
+        document.getElementById('user-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
 </body>
 </html>
