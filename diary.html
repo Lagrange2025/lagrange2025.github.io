@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>心理健康日记问卷</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #5a67d8;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #718096;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        .note {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 0.95rem;
+        }
+        .form-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+        }
+        section {
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+        section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        h2 {
+            color: #4c51bf;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        h3 {
+            color: #5a67d8;
+            margin: 15px 0 10px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        .form-group:hover {
+            background: #edf2f7;
+            transform: translateY(-2px);
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        input[type="time"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #5a67d8;
+            box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.1);
+        }
+        .rating-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .rating-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 8px;
+        }
+        .slider-container input[type="range"] {
+            flex: 1;
+        }
+        .slider-value {
+            width: 40px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .time-inputs {
+            display: flex;
+            gap: 15px;
+        }
+        .time-inputs > div {
+            flex: 1;
+        }
+        .btn-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        button {
+            background: #5a67d8;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(90, 103, 216, 0.3);
+        }
+        button:hover {
+            background: #4c51bf;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(90, 103, 216, 0.4);
+        }
+        .output-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            display: none;
+        }
+        .output-container h2 {
+            color: #5a67d8;
+            margin-bottom: 20px;
+        }
+        .output-content {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 15px;
+            line-height: 1.8;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .optional {
+            font-size: 0.85rem;
+            color: #718096;
+            font-style: italic;
+            margin-top: 5px;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            color: #718096;
+            font-size: 0.9rem;
+        }
+        @media (max-width: 768px) {
+            .rating-container {
+                grid-template-columns: 1fr;
+            }
+            .time-inputs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>心理健康日记问卷</h1>
+            <p class="subtitle">记录你的每日情绪、症状和生活状态</p>
+            <div class="note">
+                <strong>温馨提示：</strong> 不想写的时候可以不写！心理健康日记的目的是帮助你更好地理解自己，而不是成为负担。如果你今天感觉很疲惫，可以跳过部分问题，只填写你觉得重要的部分。
+            </div>
+        </header>
+
+        <div class="form-container">
+            <form id="diary-form">
+                <section>
+                    <h2>1. 日期与天气</h2>
+                    <div class="form-group">
+                        <label for="date">日期</label>
+                        <input type="date" id="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="weather">天气情况</label>
+                        <input type="text" id="weather" placeholder="例如：晴朗、多云、下雨等">
+                    </div>
+                </section>
+
+                <section>
+                    <h2>2. 情绪与症状管理</h2>
+                    <div class="form-group">
+                        <h3>情绪评分 (0-10分)</h3>
+                        <div class="rating-container">
+                            <div class="rating-item">
+                                <label for="happiness">快乐：0=完全麻木 → 10=充沛愉悦</label>
+                                <div class="slider-container">
+                                    <input type="range" id="happiness" min="0" max="10" value="5">
+                                    <span class="slider-value" id="happiness-value">5</span>
+                                </div>
+                            </div>
+                            <div class="rating-item">
+                                <label for="anxiety">焦虑：0=完全放松 → 10=惊恐发作</label>
+                                <div class="slider-container">
+                                    <input type="range" id="anxiety" min="0" max="10" value="5">
+                                    <span class="slider-value" id="anxiety-value">5</span>
+                                </div>
+                            </div>
+                            <div class="rating-item">
+                                <label for="anger">愤怒：0=无波动 → 10=想砸东西</label>
+                                <div class="slider-container">
+                                    <input type="range" id="anger" min="0" max="10" value="5">
+                                    <span class="slider-value" id="anger-value">5</span>
+                                </div>
+                            </div>
+                            <div class="rating-item">
+                                <label for="sadness">悲伤：0=无感 → 10=绝望窒息感</label>
+                                <div class="slider-container">
+                                    <input type="range" id="sadness" min="0" max="10" value="5">
+                                    <span class="slider-value" id="sadness-value">5</span>
+                                </div>
+                            </div>
+                            <div class="rating-item">
+                                <label for="emptiness">空虚：0=充实 → 10=行尸走肉</label>
+                                <div class="slider-container">
+                                    <input type="range" id="emptiness" min="0" max="10" value="5">
+                                    <span class="slider-value" id="emptiness-value">5</span>
+                                </div>
+                            </div>
+                            <div class="rating-item">
+                                <label for="dissociation">解离：现实感丧失/记忆模糊程度</label>
+                                <div class="slider-container">
+                                    <input type="range" id="dissociation" min="0" max="10" value="5">
+                                    <span class="slider-value" id="dissociation-value">5</span>
+                                </div>
+                            </div>
+                            <div class="rating-item">
+                                <label for="masking">伪装：社交中强装正常的疲惫感</label>
+                                <div class="slider-container">
+                                    <input type="range" id="masking" min="0" max="10" value="5">
+                                    <span class="slider-value" id="masking-value">5</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="emotion_ratio">前五种情绪在这一天中分别占了多少比例？(总和100%)</label>
+                        <textarea id="emotion_ratio" placeholder="例如：快乐20%、焦虑30%、愤怒10%、悲伤25%、空虚15%"></textarea>
+                        <p class="optional">请最多估计到10%的精确度</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="partner_impact">对方情绪对你的影响</label>
+                        <textarea id="partner_impact" placeholder="例如：对象情绪怎么样会引起你怎么样？"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="mood_swings">今天有多少次情绪剧烈波动？原因是什么？</label>
+                        <textarea id="mood_swings"></textarea>
+                    </div>
+
+                    <h3>睡前评估 (0-10分)</h3>
+                    <div class="rating-container">
+                        <div class="rating-item">
+                            <label for="trust">你有多相信对方不会离开你？</label>
+                            <div class="slider-container">
+                                <input type="range" id="trust" min="0" max="10" value="5">
+                                <span class="slider-value" id="trust-value">5</span>
+                            </div>
+                        </div>
+                        <div class="rating-item">
+                            <label for="express">你可以坦然地表达负面情绪吗？</label>
+                            <div class="slider-container">
+                                <input type="range" id="express" min="0" max="10" value="5">
+                                <span class="slider-value" id="express-value">5</span>
+                            </div>
+                        </div>
+                        <div class="rating-item">
+                            <label for="given_security">你认为自己今天给她带来了多少安全感？</label>
+                            <div class="slider-container">
+                                <input type="range" id="given_security" min="0" max="10" value="5">
+                                <span class="slider-value" id="given_security-value">5</span>
+                            </div>
+                        </div>
+                        <div class="rating-item">
+                            <label for="received_security">你认为她今天给你带来了多少安全感？</label>
+                            <div class="slider-container">
+                                <input type="range" id="received_security" min="0" max="10" value="5">
+                                <span class="slider-value" id="received_security-value">5</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>3. BPD相关</h2>
+                    <div class="form-group">
+                        <label for="bpd_events">记录BPD触发事件</label>
+                        <textarea id="bpd_events" placeholder="事实 → 感受 → 认知检查
+例如：她不回我消息 → 我被扔了 → 明明她昨天还说了什么，足以见得她爱我"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="bpd_efforts">你为击败一次发作的BPD做了什么努力？成功了吗？</label>
+                        <textarea id="bpd_efforts"></textarea>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>4. 看看你的身子</h2>
+                    <div class="form-group">
+                        <label>睡眠情况</label>
+                        <div class="time-inputs">
+                            <div>
+                                <label for="sleep_start">入睡时间</label>
+                                <input type="time" id="sleep_start">
+                            </div>
+                            <div>
+                                <label for="sleep_end">醒来时间</label>
+                                <input type="time" id="sleep_end">
+                            </div>
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <label for="sleep_quality">睡眠质量</label>
+                            <select id="sleep_quality">
+                                <option value="">-- 请选择 --</option>
+                                <option value="excellent">非常好</option>
+                                <option value="good">好</option>
+                                <option value="fair">一般</option>
+                                <option value="poor">差</option>
+                                <option value="very_poor">非常差</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="wakeup_discomfort">醒来有没有什么不适？想分享神奇的梦吗？</label>
+                        <textarea id="wakeup_discomfort"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="eating">今天吃饭时间正常吗？</label>
+                        <textarea id="eating" placeholder="请描述今天的饮食情况"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="physical_discomfort">今天有没有身体上的难受？大概是什么时候？持续多久？可以形容一下吗？</label>
+                        <textarea id="physical_discomfort"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="exercise">今天有没有运动？体重多少了？</label>
+                        <textarea id="exercise"></textarea>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>5. 关系互动与自我觉察</h2>
+                    <div class="form-group">
+                        <label for="reassurance">今天对象的什么举动让你感觉到安心呢？</label>
+                        <textarea id="reassurance"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="happy_phrase">今天对象让你开心的印象最深的一句话是什么呀？</label>
+                        <textarea id="happy_phrase"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="conflict">今天关系有没有出现矛盾或问题？解决了吗？</label>
+                        <textarea id="conflict" placeholder="如果没有，你觉得怎么解决比较好？如果解决了，是怎么解决的？你从里面学到了什么？"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="changed_view">今天有没有改变一个以前认定的观念？</label>
+                        <textarea id="changed_view"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="daily_activities">今天都大概做了些什么事情？</label>
+                        <textarea id="daily_activities"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="learned_today">今天学了什么呀？</label>
+                        <textarea id="learned_today"></textarea>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>6. 一周复盘</h2>
+                    <div class="form-group">
+                        <label for="weekly_highlow">你这一周最快乐和最痛苦的时候分别是什么时候？发生了什么呢？</label>
+                        <textarea id="weekly_highlow"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="relationship_improvement">你和对象的关系进步了吗？互相改进了什么不足？</label>
+                        <textarea id="relationship_improvement"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="knowledge_learned">你这周都学了什么知识呢？</label>
+                        <textarea id="knowledge_learned"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="life_lessons">这周都学到了什么活着的道理呢？</label>
+                        <textarea id="life_lessons"></textarea>
+                    </div>
+                </section>
+
+                <div class="btn-container">
+                    <button type="submit">提交日记</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="output-container" id="output-section">
+            <h2>你的日记内容</h2>
+            <div class="output-content" id="formatted-output"></div>
+        </div>
+
+        <footer>
+            <p>心理健康日记 | 记录自我成长与情绪变化 | 每日反思</p>
+            <p>提示：这份日记仅供个人使用，请妥善保管您的隐私信息</p>
+        </footer>
+    </div>
+
+    <script>
+        // 更新滑块值显示
+        const sliders = document.querySelectorAll('input[type="range"]');
+        sliders.forEach(slider => {
+            const valueDisplay = document.getElementById(`${slider.id}-value`);
+            valueDisplay.textContent = slider.value;
+            
+            slider.addEventListener('input', () => {
+                valueDisplay.textContent = slider.value;
+            });
+        });
+
+        // 表单提交处理
+        document.getElementById('diary-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // 获取当前日期作为默认值
+            const today = new Date();
+            const dateInput = document.getElementById('date');
+            if (!dateInput.value) {
+                const formattedDate = today.toISOString().split('T')[0];
+                dateInput.value = formattedDate;
+            }
+            
+            // 收集表单数据
+            const formData = {
+                date: document.getElementById('date').value,
+                weather: document.getElementById('weather').value || '未填写',
+                
+                // 情绪评分
+                happiness: document.getElementById('happiness').value,
+                anxiety: document.getElementById('anxiety').value,
+                anger: document.getElementById('anger').value,
+                sadness: document.getElementById('sadness').value,
+                emptiness: document.getElementById('emptiness').value,
+                dissociation: document.getElementById('dissociation').value,
+                masking: document.getElementById('masking').value,
+                emotion_ratio: document.getElementById('emotion_ratio').value || '未填写',
+                partner_impact: document.getElementById('partner_impact').value || '未填写',
+                mood_swings: document.getElementById('mood_swings').value || '未填写',
+                
+                // 睡前评估
+                trust: document.getElementById('trust').value,
+                express: document.getElementById('express').value,
+                given_security: document.getElementById('given_security').value,
+                received_security: document.getElementById('received_security').value,
+                
+                // BPD相关
+                bpd_events: document.getElementById('bpd_events').value || '未填写',
+                bpd_efforts: document.getElementById('bpd_efforts').value || '未填写',
+                
+                // 身体状况
+                sleep_start: document.getElementById('sleep_start').value || '未填写',
+                sleep_end: document.getElementById('sleep_end').value || '未填写',
+                sleep_quality: document.getElementById('sleep_quality').value || '未填写',
+                wakeup_discomfort: document.getElementById('wakeup_discomfort').value || '未填写',
+                eating: document.getElementById('eating').value || '未填写',
+                physical_discomfort: document.getElementById('physical_discomfort').value || '未填写',
+                exercise: document.getElementById('exercise').value || '未填写',
+                
+                // 关系互动
+                reassurance: document.getElementById('reassurance').value || '未填写',
+                happy_phrase: document.getElementById('happy_phrase').value || '未填写',
+                conflict: document.getElementById('conflict').value || '未填写',
+                changed_view: document.getElementById('changed_view').value || '未填写',
+                daily_activities: document.getElementById('daily_activities').value || '未填写',
+                learned_today: document.getElementById('learned_today').value || '未填写',
+                
+                // 周复盘
+                weekly_highlow: document.getElementById('weekly_highlow').value || '未填写',
+                relationship_improvement: document.getElementById('relationship_improvement').value || '未填写',
+                knowledge_learned: document.getElementById('knowledge_learned').value || '未填写',
+                life_lessons: document.getElementById('life_lessons').value || '未填写'
+            };
+            
+            // 格式化输出
+            const formattedOutput = `
+📅 【日期与天气】
+日期：${formData.date}
+天气：${formData.weather}
+
+😊 【情绪与症状管理】
+情绪评分（0-10分）：
+  快乐：${formData.happiness} (0=完全麻木 → 10=充沛愉悦)
+  焦虑：${formData.anxiety} (0=完全放松 → 10=惊恐发作)
+  愤怒：${formData.anger} (0=无波动 → 10=想砸东西)
+  悲伤：${formData.sadness} (0=无感 → 10=绝望窒息感)
+  空虚：${formData.emptiness} (0=充实 → 10=行尸走肉)
+  解离：${formData.dissociation} (0-10分)
+  伪装：${formData.masking} (0-10分)
+
+情绪比例：${formData.emotion_ratio}
+对方情绪影响：${formData.partner_impact}
+情绪波动：${formData.mood_swings}
+
+🌙 【睡前评估】
+信任对方不会离开：${formData.trust}/10
+坦然表达负面情绪：${formData.express}/10
+给对方的安全感：${formData.given_security}/10
+感受到的安全感：${formData.received_security}/10
+
+🌀 【BPD相关】
+触发事件：
+${formData.bpd_events}
+应对努力：
+${formData.bpd_efforts}
+
+💤 【身体状况】
+睡眠：${formData.sleep_start} 至 ${formData.sleep_end}，质量：${getQualityText(formData.sleep_quality)}
+醒来不适/梦境：${formData.wakeup_discomfort}
+饮食情况：${formData.eating}
+身体不适：${formData.physical_discomfort}
+运动与体重：${formData.exercise}
+
+❤️ 【关系互动与自我觉察】
+安心举动：${formData.reassurance}
+开心话语：${formData.happy_phrase}
+关系问题：${formData.conflict}
+观念改变：${formData.changed_view}
+今日活动：${formData.daily_activities}
+今日学习：${formData.learned_today}
+
+🔄 【一周复盘】
+最快乐和最痛苦：${formData.weekly_highlow}
+关系进步：${formData.relationship_improvement}
+知识学习：${formData.knowledge_learned}
+生活感悟：${formData.life_lessons}
+            `;
+            
+            // 显示输出
+            document.getElementById('formatted-output').textContent = formattedOutput;
+            document.getElementById('output-section').style.display = 'block';
+            
+            // 滚动到输出区域
+            document.getElementById('output-section').scrollIntoView({ behavior: 'smooth' });
+        });
+        
+        // 辅助函数：获取睡眠质量文本
+        function getQualityText(value) {
+            const qualityMap = {
+                'excellent': '非常好',
+                'good': '好',
+                'fair': '一般',
+                'poor': '差',
+                'very_poor': '非常差',
+                '': '未填写'
+            };
+            return qualityMap[value] || value;
+        }
+    </script>
+</body>
+</html>
