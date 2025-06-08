@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>本地两步验证(2FA)实现</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a237e, #311b92, #4a148c);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #fff;
+        }
+        
+        .container {
+            background: rgba(25, 25, 60, 0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 900px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        header {
+            background: rgba(0, 0, 0, 0.25);
+            padding: 30px 40px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #4fc3f7, #7c4dff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.25rem;
+            opacity: 0.85;
+            max-width: 600px;
+            margin: 10px auto 0;
+            color: #bb86fc;
+        }
+        
+        .content {
+            display: flex;
+            padding: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .panel {
+            flex: 1;
+            min-width: 300px;
+            padding: 25px;
+            background: rgba(30, 30, 70, 0.6);
+            border-radius: 15px;
+            border: 1px solid rgba(124, 77, 255, 0.2);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+        
+        .panel-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(124, 77, 255, 0.3);
+        }
+        
+        .panel-title h2 {
+            font-size: 1.8rem;
+            background: linear-gradient(to right, #4fc3f7, #7c4dff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .panel-title .icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #7c4dff, #4fc3f7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .qr-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        #qrcode {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .key-display {
+            background: rgba(0, 0, 0, 0.25);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            word-break: break-all;
+            text-align: center;
+            font-family: monospace;
+            font-size: 1.1rem;
+            border: 1px solid rgba(124, 77, 255, 0.3);
+        }
+        
+        .copy-btn {
+            background: rgba(124, 77, 255, 0.2);
+            color: #bb86fc;
+            border: 1px solid rgba(124, 77, 255, 0.4);
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 5px;
+        }
+        
+        .copy-btn:hover {
+            background: rgba(124, 77, 255, 0.3);
+        }
+        
+        .input-group {
+            display: flex;
+            justify-content: center;
+            margin: 25px 0;
+            gap: 10px;
+        }
+        
+        .code-input {
+            width: 55px;
+            height: 70px;
+            text-align: center;
+            font-size: 2.2rem;
+            border: none;
+            border-radius: 12px;
+            background: rgba(20, 20, 45, 0.7);
+            color: #fff;
+            border: 2px solid rgba(124, 77, 255, 0.3);
+            transition: all 0.3s;
+        }
+        
+        .code-input:focus {
+            outline: none;
+            border-color: #4fc3f7;
+            background: rgba(79, 195, 247, 0.1);
+            box-shadow: 0 0 15px rgba(79, 195, 247, 0.4);
+        }
+        
+        .btn {
+            padding: 16px 45px;
+            font-size: 1.15rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            margin: 15px 10px 5px;
+            background: linear-gradient(135deg, #7c4dff, #4fc3f7);
+            color: white;
+            box-shadow: 0 5px 15px rgba(124, 77, 255, 0.4);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(124, 77, 255, 0.6);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .message {
+            padding: 18px;
+            border-radius: 12px;
+            margin: 25px 0;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+            font-size: 1.1rem;
+        }
+        
+        .success {
+            background: rgba(76, 175, 80, 0.15);
+            border: 1px solid #4CAF50;
+            color: #69F0AE;
+        }
+        
+        .error {
+            background: rgba(244, 67, 54, 0.15);
+            border: 1px solid #F44336;
+            color: #FF8A80;
+        }
+        
+        .timer {
+            font-size: 1.1rem;
+            text-align: center;
+            margin-top: 15px;
+            color: #bb86fc;
+        }
+        
+        .timer span {
+            font-weight: bold;
+            color: #4fc3f7;
+        }
+        
+        .app-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 25px;
+            justify-content: center;
+        }
+        
+        .app-card {
+            background: rgba(50, 50, 90, 0.6);
+            border-radius: 12px;
+            padding: 18px;
+            width: 140px;
+            text-align: center;
+            transition: all 0.3s;
+            border: 1px solid rgba(124, 77, 255, 0.2);
+        }
+        
+        .app-card:hover {
+            transform: translateY(-8px);
+            background: rgba(60, 60, 110, 0.7);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .app-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #7c4dff, #4fc3f7);
+            color: white;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 25px;
+            background: rgba(0, 0, 0, 0.25);
+            font-size: 0.95rem;
+            opacity: 0.8;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .code-input {
+                width: 45px;
+                height: 60px;
+                font-size: 1.8rem;
+            }
+            
+            h1 {
+                font-size: 2.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>本地两步验证(2FA)实现</h1>
+            <p class="subtitle">完全在浏览器中运行的TOTP验证方案 - 无需服务器</p>
+        </header>
+        
+        <div class="content">
+            <div class="panel">
+                <div class="panel-title">
+                    <div class="icon">1</div>
+                    <h2>设置身份验证器</h2>
+                </div>
+                
+                <p>在您的手机上安装身份验证器应用：</p>
+                
+                <div class="app-list">
+                    <div class="app-card">
+                        <div class="app-icon">G</div>
+                        <p>Google Authenticator</p>
+                    </div>
+                    <div class="app-card">
+                        <div class="app-icon">A</div>
+                        <p>Authy</p>
+                    </div>
+                    <div class="app-card">
+                        <div class="app-icon">M</div>
+                        <p>Microsoft Authenticator</p>
+                    </div>
+                </div>
+                
+                <div class="panel-title" style="margin-top: 30px;">
+                    <div class="icon">2</div>
+                    <h2>扫描二维码</h2>
+                </div>
+                
+                <div class="qr-container">
+                    <div id="qrcode"></div>
+                    <p>使用身份验证器应用扫描此二维码</p>
+                </div>
+                
+                <p style="text-align: center; margin-top: 15px;">或手动输入密钥：</p>
+                <div class="key-display" id="secretKey">正在生成密钥...</div>
+                <button class="copy-btn" id="copyKeyBtn">复制密钥</button>
+            </div>
+            
+            <div class="panel">
+                <div class="panel-title">
+                    <div class="icon">3</div>
+                    <h2>验证代码</h2>
+                </div>
+                
+                <p>在身份验证器应用中获取6位验证码，然后在此输入：</p>
+                
+                <div class="input-group">
+                    <input type="text" class="code-input" maxlength="1" data-index="0" autocomplete="off">
+                    <input type="text" class="code-input" maxlength="1" data-index="1" autocomplete="off">
+                    <input type="text" class="code-input" maxlength="1" data-index="2" autocomplete="off">
+                    <input type="text" class="code-input" maxlength="1" data-index="3" autocomplete="off">
+                    <input type="text" class="code-input" maxlength="1" data-index="4" autocomplete="off">
+                    <input type="text" class="code-input" maxlength="1" data-index="5" autocomplete="off">
+                </div>
+                
+                <div class="timer">代码有效期: <span id="countdown">30</span>秒</div>
+                
+                <div class="message" id="message"></div>
+                
+                <div style="text-align: center;">
+                    <button class="btn" id="verifyBtn">验证代码</button>
+                    <button class="btn btn-secondary" id="resetBtn">重置</button>
+                </div>
+                
+                <div class="panel-title" style="margin-top: 40px;">
+                    <div class="icon">!</div>
+                    <h2>安全说明</h2>
+                </div>
+                
+                <ul style="padding-left: 25px; margin-top: 15px; line-height: 1.8;">
+                    <li>此演示完全在浏览器中运行，无需服务器</li>
+                    <li>生成的密钥保存在本地浏览器中</li>
+                    <li>实际应用中应在服务器端实现2FA验证</li>
+                    <li>关闭浏览器后密钥将丢失，请妥善保存</li>
+                    <li>使用CryptoJS库进行安全加密操作</li>
+                </ul>
+            </div>
+        </div>
+        
+        <footer>
+            <p>基于TOTP(基于时间的一次性密码)算法 | 本地实现 | 安全演示</p>
+            <p>© 2023 本地两步验证(2FA)实现 | 增强账户安全</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 生成随机的Base32密钥
+            function generateSecret() {
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+                let secret = '';
+                for (let i = 0; i < 16; i++) {
+                    secret += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                return secret;
+            }
+            
+            // 获取或生成密钥
+            let secret = localStorage.getItem('2fa_secret');
+            if (!secret) {
+                secret = generateSecret();
+                localStorage.setItem('2fa_secret', secret);
+            }
+            
+            document.getElementById('secretKey').textContent = secret;
+            
+            // 生成TOTP URI
+            const account = "user@local.dev";
+            const issuer = "Local2FA";
+            const totpUri = `otpauth://totp/${issuer}:${account}?secret=${secret}&issuer=${issuer}&algorithm=SHA1&digits=6&period=30`;
+            
+            // 生成二维码
+            new QRCode(document.getElementById('qrcode'), {
+                text: totpUri,
+                width: 200,
+                height: 200,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            
+            // 复制密钥按钮
+            document.getElementById('copyKeyBtn').addEventListener('click', function() {
+                navigator.clipboard.writeText(secret).then(() => {
+                    const btn = this;
+                    btn.textContent = '✓ 已复制!';
+                    setTimeout(() => {
+                        btn.textContent = '复制密钥';
+                    }, 2000);
+                });
+            });
+            
+            // 验证码输入处理
+            const codeInputs = document.querySelectorAll('.code-input');
+            const verifyBtn = document.getElementById('verifyBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const messageDiv = document.getElementById('message');
+            const countdownEl = document.getElementById('countdown');
+            
+            // 自动跳转输入框
+            codeInputs.forEach((input, index) => {
+                input.addEventListener('input', (e) => {
+                    if (e.target.value.length === 1 && index < codeInputs.length - 1) {
+                        codeInputs[index + 1].focus();
+                    }
+                    if (e.target.value.length === 1 && index === codeInputs.length - 1) {
+                        verifyBtn.focus();
+                    }
+                });
+                
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+                        codeInputs[index - 1].focus();
+                    }
+                });
+            });
+            
+            // 验证TOTP代码
+            function verifyTOTP(token) {
+                // 获取当前时间戳（30秒间隔）
+                const epoch = Math.floor(Date.now() / 1000);
+                const timeStep = 30;
+                const counter = Math.floor(epoch / timeStep);
+                
+                // 生成HMAC-SHA1哈希
+                const hmac = CryptoJS.HmacSHA1(CryptoJS.enc.Hex.parse(intToHex(counter)), 
+                    CryptoJS.enc.Base32.parse(secret).toString(CryptoJS.enc.Utf8));
+                
+                // 获取哈希值并计算偏移量
+                const hmacValue = hmac.toString(CryptoJS.enc.Hex);
+                const offset = parseInt(hmacValue.charAt(hmacValue.length - 1), 16);
+                
+                // 获取动态代码
+                const otp = 
+                    ((parseInt(hmacValue.substr(offset * 2, 8), 16) & 0x7fffffff) + '';
+                
+                // 提取6位数
+                const generatedToken = otp.substr(otp.length - 6, 6);
+                
+                // 比较令牌
+                return token === generatedToken;
+            }
+            
+            // 辅助函数：将整数转换为8字节十六进制
+            function intToHex(num) {
+                let hex = num.toString(16);
+                while (hex.length < 16) {
+                    hex = '0' + hex;
+                }
+                return hex;
+            }
+            
+            // 验证按钮事件
+            verifyBtn.addEventListener('click', () => {
+                let code = '';
+                codeInputs.forEach(input => {
+                    code += input.value;
+                });
+                
+                if (code.length !== 6) {
+                    showMessage('请输入完整的6位验证码', 'error');
+                    return;
+                }
+                
+                if (verifyTOTP(code)) {
+                    showMessage('验证成功！两步验证已启用。', 'success');
+                } else {
+                    showMessage('验证码错误，请重试。', 'error');
+                }
+            });
+            
+            // 重置按钮事件
+            resetBtn.addEventListener('click', () => {
+                codeInputs.forEach(input => {
+                    input.value = '';
+                });
+                codeInputs[0].focus();
+                messageDiv.style.display = 'none';
+            });
+            
+            // 显示消息
+            function showMessage(text, type) {
+                messageDiv.textContent = text;
+                messageDiv.className = 'message ' + type;
+                messageDiv.style.display = 'block';
+                
+                // 3秒后自动隐藏消息
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 3000);
+            }
+            
+            // 倒计时更新
+            function updateCountdown() {
+                const epoch = Math.floor(Date.now() / 1000);
+                const secondsLeft = 30 - (epoch % 30);
+                countdownEl.textContent = secondsLeft;
+                
+                // 更新进度条效果
+                const progress = (secondsLeft / 30) * 100;
+                countdownEl.style.background = `linear-gradient(90deg, #7c4dff ${progress}%, rgba(124, 77, 255, 0.2) ${progress}%)`;
+                countdownEl.style.webkitBackgroundClip = 'text';
+                countdownEl.style.webkitTextFillColor = 'transparent';
+            }
+            
+            // 初始更新倒计时
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+            
+            // 初始聚焦到第一个输入框
+            codeInputs[0].focus();
+        });
+    </script>
+</body>
+</html>
