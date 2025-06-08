@@ -4,412 +4,671 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DeepSeek 聊天助手</title>
-    <!-- 引入Marked.js用于Markdown解析 -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
+        :root {
+            --primary-color: #4a6ee0;
+            --primary-dark: #3a56c4;
+            --secondary-color: #5c6bc0;
+            --light-bg: #f9fbfd;
+            --dark-bg: #2c3e50;
+            --text-color: #333;
+            --text-light: #777;
+            --border-color: #e1e5eb;
+            --user-msg-bg: linear-gradient(135deg, #4a6ee0 0%, #3a56c4 100%);
+            --ai-msg-bg: #ffffff;
+            --success-color: #4CAF50;
+            --error-color: #F44336;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
         body {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
             background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            color: var(--text-color);
             display: flex;
             flex-direction: column;
             height: 100vh;
-            color: #333;
+            overflow: hidden;
+            padding: 20px;
         }
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 20px;
-            font-weight: 600;
-            font-size: 28px;
-        }
-        #chat-container {
-            border: 1px solid #e1e5eb;
-            border-radius: 12px;
+        
+        .app-container {
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border-radius: 16px;
             overflow: hidden;
             background: white;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 24px;
+            color: var(--primary-color);
+        }
+        
+        .logo-icon {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4CAF50;
+        }
+        
+        .chat-container {
             display: flex;
             flex-direction: column;
             flex: 1;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            position: relative;
         }
-        #chat-messages {
+        
+        .messages-container {
             flex: 1;
             overflow-y: auto;
             padding: 20px;
-            background: #f9fbfd;
+            background: var(--light-bg);
             display: flex;
             flex-direction: column;
-            gap: 15px;
-        }
-        .message {
-            margin: 10px 0;
-            padding: 15px 20px;
-            border-radius: 15px;
-            max-width: 80%;
-            word-wrap: break-word;
-            cursor: pointer;
-            user-select: text;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s, box-shadow 0.2s;
+            gap: 20px;
+            scroll-behavior: smooth;
             position: relative;
-            overflow: hidden;
         }
-        .message:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        
+        /* 优化滚动条 */
+        .messages-container::-webkit-scrollbar {
+            width: 8px;
         }
+        
+        .messages-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        .messages-container::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        
+        .messages-container::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
+        }
+        
+        .message {
+            display: flex;
+            gap: 15px;
+            animation: fadeIn 0.3s ease-out;
+            max-width: 85%;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
         .user-message {
-            background: linear-gradient(135deg, #4a6ee0 0%, #3a56c4 100%);
-            color: white;
             margin-left: auto;
-            align-self: flex-end;
         }
-        .ai-message {
-            background: white;
-            border: 1px solid #e1e5eb;
-            margin-right: auto;
-            align-self: flex-start;
+        
+        .avatar {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
         }
+        
+        .user-avatar {
+            background: var(--primary-color);
+        }
+        
+        .ai-avatar {
+            background: var(--secondary-color);
+        }
+        
         .message-content {
-            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
-        .message-content p {
-            margin: 8px 0;
+        
+        .message-bubble {
+            padding: 16px 20px;
+            border-radius: 18px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
+        
+        .user-message .message-bubble {
+            background: var(--user-msg-bg);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .ai-message .message-bubble {
+            background: var(--ai-msg-bg);
+            border: 1px solid var(--border-color);
+            border-bottom-left-radius: 4px;
+        }
+        
+        .message-bubble:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+        }
+        
+        .ai-message .message-content-inner {
+            line-height: 1.7;
+        }
+        
         .message-content pre {
             background: #f6f8fa;
-            padding: 12px;
-            border-radius: 8px;
+            padding: 14px;
+            border-radius: 10px;
             overflow-x: auto;
             margin: 12px 0;
-            border: 1px solid #e1e5eb;
+            border: 1px solid var(--border-color);
+            font-size: 15px;
+            line-height: 1.5;
         }
+        
         .message-content code {
             font-family: 'Fira Code', 'Consolas', monospace;
             background: #f6f8fa;
             padding: 2px 6px;
             border-radius: 4px;
-            font-size: 14px;
+            font-size: 15px;
         }
+        
         .message-content h1, 
         .message-content h2, 
         .message-content h3 {
-            margin-top: 20px;
-            margin-bottom: 10px;
-            color: #2c3e50;
+            margin-top: 22px;
+            margin-bottom: 12px;
+            color: var(--dark-bg);
         }
+        
         .message-content ul, 
         .message-content ol {
-            padding-left: 25px;
-            margin: 12px 0;
+            padding-left: 28px;
+            margin: 14px 0;
         }
+        
         .message-content li {
-            margin-bottom: 6px;
+            margin-bottom: 8px;
         }
+        
         .message-content blockquote {
-            border-left: 4px solid #4a6ee0;
-            padding-left: 15px;
-            margin: 15px 0;
+            border-left: 4px solid var(--primary-color);
+            padding-left: 18px;
+            margin: 16px 0;
             color: #555;
             font-style: italic;
         }
+        
+        .token-info {
+            text-align: right;
+            font-size: 13px;
+            color: var(--text-light);
+            padding-top: 8px;
+            margin-top: 8px;
+            border-top: 1px dashed var(--border-color);
+        }
+        
         .input-area {
-            display: flex;
-            padding: 15px;
+            padding: 20px;
             background: white;
-            border-top: 1px solid #e1e5eb;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .input-fields {
+            border-top: 1px solid var(--border-color);
             display: flex;
-            flex-direction: row;
-            gap: 12px;
-            width: 100%;
+            flex-direction: column;
+            gap: 15px;
         }
-        #user-input, #username, #password {
+        
+        .auth-fields {
+            display: flex;
+            gap: 12px;
+        }
+        
+        #username, #password {
             flex: 1;
-            padding: 12px 15px;
-            border: 1px solid #dce1e8;
-            border-radius: 8px;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
             font-size: 16px;
-            background: #f9fbfd;
+            background: var(--light-bg);
             transition: border-color 0.3s, box-shadow 0.3s;
         }
-        #user-input:focus, #username:focus, #password:focus {
+        
+        #username:focus, #password:focus {
             outline: none;
-            border-color: #4a6ee0;
+            border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(74, 110, 224, 0.15);
         }
-        #user-input {
-            padding-right: 50px;
-        }
-        button {
-            padding: 12px 25px;
-            background: linear-gradient(135deg, #4a6ee0 0%, #3a56c4 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 16px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 10px rgba(74, 110, 224, 0.25);
-        }
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(74, 110, 224, 0.35);
-        }
-        button:active {
-            transform: translateY(0);
-        }
-        button:disabled {
-            background: linear-gradient(135deg, #b0b9d6 0%, #a1a9c1 100%);
-            cursor: not-allowed;
-            box-shadow: none;
-            transform: none;
-        }
-        .token-info {
-            display: block;
-            text-align: right;
-            font-size: 12px;
-            color: #777;
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px dashed #e1e5eb;
-        }
-        .message-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-        .user-icon, .ai-icon {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            margin-right: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            color: white;
-        }
-        .user-icon {
-            background: #3a56c4;
-        }
-        .ai-icon {
-            background: #5c6bc0;
-        }
-        .copy-hint {
-            position: absolute;
-            top: -30px;
-            right: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            opacity: 0;
-            transition: opacity 0.3s, top 0.3s;
-        }
-        .message:hover .copy-hint {
-            opacity: 1;
-            top: 10px;
-        }
+        
         .input-wrapper {
             position: relative;
             display: flex;
         }
+        
+        #user-input {
+            width: 100%;
+            padding: 16px 60px 16px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 16px;
+            background: var(--light-bg);
+            transition: all 0.3s;
+            resize: none;
+            min-height: 56px;
+            max-height: 150px;
+            line-height: 1.5;
+        }
+        
+        #user-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(74, 110, 224, 0.15);
+        }
+        
         .send-button {
             position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
+            right: 16px;
+            bottom: 16px;
+            background: var(--primary-color);
+            color: white;
             border: none;
-            color: #4a6ee0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
             cursor: pointer;
-            padding: 5px;
-            box-shadow: none;
-        }
-        .send-button svg {
-            width: 24px;
-            height: 24px;
-        }
-        .logo-container {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #4a6ee0;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .logo-icon {
-            background: linear-gradient(135deg, #4a6ee0 0%, #3a56c4 100%);
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(74, 110, 224, 0.25);
+        }
+        
+        .send-button:hover {
+            transform: translateY(-2px);
+            background: var(--primary-dark);
+            box-shadow: 0 6px 15px rgba(74, 110, 224, 0.35);
+        }
+        
+        .send-button:active {
+            transform: translateY(0);
+        }
+        
+        .send-button svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .scroll-to-bottom {
+            position: absolute;
+            bottom: 90px;
+            right: 30px;
+            background: var(--primary-color);
             color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        
+        .scroll-to-bottom.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 12px 20px;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            width: fit-content;
+            margin-top: 10px;
+        }
+        
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-light);
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+        
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .app-container {
+                border-radius: 0;
+                box-shadow: none;
+            }
+            
+            body {
+                padding: 0;
+            }
+            
+            .header {
+                padding: 15px;
+            }
+            
+            .messages-container {
+                padding: 15px;
+            }
+            
+            .message {
+                max-width: 95%;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>DeepSeek 聊天助手</h1>
-    
-    <div id="chat-container">
-        <div id="chat-messages">
-            <!-- 初始欢迎消息 -->
-            <div class="message ai-message">
-                <div class="message-header">
-                    <div class="ai-icon">AI</div>
-                    <div>DeepSeek助手</div>
-                </div>
-                <div class="message-content">
-                    <p>👋 你好！我是DeepSeek智能助手，我可以帮助你解决各种问题。</p>
-                    <p>请先输入您的用户名和密码，然后在下方输入您的问题。</p>
-                    <p>我的回复支持<strong>Markdown格式</strong>，可以显示：</p>
-                    <ul>
-                        <li>代码块：<code>console.log("Hello")</code></li>
-                        <li>列表项</li>
-                        <li>标题和引用</li>
-                    </ul>
-                    <p>点击我的回复可以<strong>复制内容</strong>，回复末尾会显示<strong>本次对话使用的Token数量</strong>。</p>
-                </div>
+    <div class="app-container">
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">DS</div>
+                <div>DeepSeek聊天助手</div>
+            </div>
+            <div class="status">
+                <div class="status-dot"></div>
+                <span>在线</span>
             </div>
         </div>
+        
+        <div class="chat-container">
+            <div class="messages-container" id="chat-messages">
+                <div class="message ai-message">
+                    <div class="avatar ai-avatar">AI</div>
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            <div class="message-content-inner">
+                                <p>👋 你好！我是DeepSeek智能助手，我可以帮助你解决各种问题。</p>
+                                <p>请先输入您的用户名和密码，然后在下方输入您的问题。</p>
+                                <p>我的回复支持<strong>Markdown格式</strong>，可以显示：</p>
+                                <ul>
+                                    <li>代码块：<code>console.log("Hello")</code></li>
+                                    <li>列表项</li>
+                                    <li>标题和引用</li>
+                                </ul>
+                                <p>回复末尾会显示<strong>本次对话使用的Token数量</strong>。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="scroll-to-bottom" id="scrollToBottom" title="滚动到底部">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white">
+                    <path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/>
+                </svg>
+            </button>
+        </div>
+        
         <div class="input-area">
-            <div class="input-fields">
+            <div class="auth-fields">
                 <input type="text" id="username" placeholder="用户名" value="demo-user">
                 <input type="password" id="password" placeholder="密码" value="demo-pass">
             </div>
+            
             <div class="input-wrapper">
-                <input type="text" id="user-input" placeholder="输入消息...">
-                <button class="send-button" onclick="sendMessage()">
+                <textarea id="user-input" placeholder="输入消息..."></textarea>
+                <button class="send-button" id="sendButton" title="发送消息">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
                     </svg>
                 </button>
             </div>
-            <button onclick="sendMessage()">发送消息</button>
         </div>
     </div>
 
     <script>
-        const WORKER_URL = "https://ai.1740959587.workers.dev";  // 替换为你的 Worker 地址
-
+        const WORKER_URL = "https://ai.1740959587.workers.dev";
+        let conversationHistory = [];
+        let isScrolledToBottom = true;
+        let scrollBottomBtn = document.getElementById('scrollToBottom');
+        let chatMessages = document.getElementById('chat-messages');
+        let sendButton = document.getElementById('sendButton');
+        
+        // 滚动优化功能
+        function setupScrollHandling() {
+            chatMessages.addEventListener('scroll', () => {
+                // 检查用户是否滚动到底部
+                const isAtBottom = chatMessages.scrollHeight - chatMessages.scrollTop <= chatMessages.clientHeight + 100;
+                
+                isScrolledToBottom = isAtBottom;
+                
+                // 显示/隐藏滚动到底部按钮
+                scrollBottomBtn.classList.toggle('visible', !isAtBottom);
+            });
+            
+            // 滚动到底部按钮事件
+            scrollBottomBtn.addEventListener('click', () => {
+                scrollToBottom();
+                scrollBottomBtn.classList.remove('visible');
+            });
+        }
+        
+        // 滚动到底部
+        function scrollToBottom() {
+            chatMessages.scrollTo({
+                top: chatMessages.scrollHeight,
+                behavior: 'smooth'
+            });
+            isScrolledToBottom = true;
+        }
+        
+        // 添加消息到聊天框
+        function addMessage(content, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+            
+            // 创建头像
+            const avatar = document.createElement('div');
+            avatar.className = `avatar ${isUser ? 'user-avatar' : 'ai-avatar'}`;
+            avatar.textContent = isUser ? '你' : 'AI';
+            
+            // 创建消息内容
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            
+            const messageBubble = document.createElement('div');
+            messageBubble.className = 'message-bubble';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content-inner';
+            
+            if (isUser) {
+                contentDiv.textContent = content;
+            } else {
+                contentDiv.innerHTML = marked.parse(content);
+            }
+            
+            messageBubble.appendChild(contentDiv);
+            messageContent.appendChild(messageBubble);
+            
+            // 组装消息
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(messageContent);
+            
+            // 添加到聊天框
+            chatMessages.appendChild(messageDiv);
+            
+            // 如果用户已经滚动到底部，则自动滚动
+            if (isScrolledToBottom) {
+                scrollToBottom();
+            }
+            
+            return messageDiv;
+        }
+        
+        // 添加AI消息（流式）
+        function addStreamingMessage() {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ai-message';
+            
+            // 创建头像
+            const avatar = document.createElement('div');
+            avatar.className = 'ai-avatar';
+            avatar.textContent = 'AI';
+            
+            // 创建消息内容
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            
+            const messageBubble = document.createElement('div');
+            messageBubble.className = 'message-bubble';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content-inner';
+            contentDiv.id = 'streaming-content';
+            
+            // 添加打字效果
+            const typingIndicator = document.createElement('div');
+            typingIndicator.className = 'typing-indicator';
+            typingIndicator.innerHTML = `
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            `;
+            
+            messageBubble.appendChild(contentDiv);
+            messageBubble.appendChild(typingIndicator);
+            messageContent.appendChild(messageBubble);
+            
+            // 组装消息
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(messageContent);
+            
+            // 添加到聊天框
+            chatMessages.appendChild(messageDiv);
+            
+            // 滚动到底部
+            scrollToBottom();
+            
+            return {
+                messageDiv,
+                contentDiv,
+                typingIndicator
+            };
+        }
+        
         // SHA-256 哈希函数
         async function hashString(str) {
             const hashBuffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
         }
-
-        // 添加消息到聊天框
-        function addMessage(content, isUser) {
-            const chatMessages = document.getElementById('chat-messages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
-            
-            // 创建消息头部
-            const messageHeader = document.createElement('div');
-            messageHeader.className = 'message-header';
-            
-            const iconDiv = document.createElement('div');
-            iconDiv.className = isUser ? 'user-icon' : 'ai-icon';
-            iconDiv.textContent = isUser ? '你' : 'AI';
-            
-            const nameDiv = document.createElement('div');
-            nameDiv.textContent = isUser ? '你' : 'DeepSeek助手';
-            
-            messageHeader.appendChild(iconDiv);
-            messageHeader.appendChild(nameDiv);
-            messageDiv.appendChild(messageHeader);
-            
-            // 创建消息内容容器
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'message-content';
-            
-            // 如果是用户消息，直接显示文本
-            if (isUser) {
-                contentDiv.textContent = content;
-            } 
-            // 如果是AI消息，使用Markdown渲染
-            else {
-                // 使用Marked解析Markdown
-                contentDiv.innerHTML = marked.parse(content);
-            }
-            
-            messageDiv.appendChild(contentDiv);
-            
-            // 添加复制提示
-            const copyHint = document.createElement('div');
-            copyHint.className = 'copy-hint';
-            copyHint.textContent = '点击复制';
-            messageDiv.appendChild(copyHint);
-
-            // 点击复制功能（仅限 AI 回复）
-            if (!isUser) {
-                messageDiv.addEventListener("click", async () => {
-                    try {
-                        await navigator.clipboard.writeText(content);
-                        
-                        // 显示复制成功反馈
-                        copyHint.textContent = '✓ 已复制';
-                        copyHint.style.background = '#4CAF50';
-                        setTimeout(() => {
-                            copyHint.textContent = '点击复制';
-                            copyHint.style.background = 'rgba(0, 0, 0, 0.7)';
-                        }, 1500);
-                    } catch (err) {
-                        console.error("复制失败:", err);
-                        copyHint.textContent = '复制失败!';
-                        copyHint.style.background = '#F44336';
-                        setTimeout(() => {
-                            copyHint.textContent = '点击复制';
-                            copyHint.style.background = 'rgba(0, 0, 0, 0.7)';
-                        }, 1500);
-                    }
-                });
-            }
-
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        // 初始化对话历史
-        let conversationHistory = [];
-
+        
         // 发送消息到后端
         async function sendMessage() {
             const userInput = document.getElementById('user-input');
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
             const message = userInput.value.trim();
-
-            if (!username || !password || !message) return alert("用户名、密码或消息不能为空！");
-
+            
+            if (!username || !password || !message) {
+                alert("用户名、密码或消息不能为空！");
+                return;
+            }
+            
+            // 禁用发送按钮
+            sendButton.disabled = true;
+            
             // 计算哈希
             const hashedAuth = await hashString(`${username}:${password}`);
-
+            
             // 显示用户消息
             addMessage(message, true);
-            userInput.value = ''; // 清空输入框
-
+            userInput.value = '';
+            userInput.style.height = 'auto';
+            
             // 将当前消息添加到对话历史
             conversationHistory.push({ role: 'user', content: message });
-
+            
             try {
+                // 添加AI消息容器
+                const { contentDiv, typingIndicator } = addStreamingMessage();
+                let aiResponse = '';
+                let lastTotalTokens = null;
+                
                 // 发起请求
                 const response = await fetch(WORKER_URL, {
                     method: 'POST',
@@ -421,46 +680,17 @@
                         prompt: conversationHistory.map(msg => msg.content).join("\n")
                     })
                 });
-
+                
                 // 流式处理响应
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
-                let aiResponse = '';
-                let lastTotalTokens = null;
-
-                // 创建一个新的 AI 消息元素
-                const messageDiv = document.createElement('div');
-                messageDiv.className = 'message ai-message';
                 
-                // 消息头部
-                const messageHeader = document.createElement('div');
-                messageHeader.className = 'message-header';
-                
-                const iconDiv = document.createElement('div');
-                iconDiv.className = 'ai-icon';
-                iconDiv.textContent = 'AI';
-                
-                const nameDiv = document.createElement('div');
-                nameDiv.textContent = 'DeepSeek助手';
-                
-                messageHeader.appendChild(iconDiv);
-                messageHeader.appendChild(nameDiv);
-                messageDiv.appendChild(messageHeader);
-                
-                // 消息内容
-                const contentDiv = document.createElement('div');
-                contentDiv.className = 'message-content';
-                messageDiv.appendChild(contentDiv);
-                
-                // 添加到聊天框
-                document.getElementById('chat-messages').appendChild(messageDiv);
-
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
-
+                    
                     const chunk = decoder.decode(value, { stream: true });
-
+                    
                     // 提取 "content" 的内容
                     const contentMatch = /"content":"(.*?)"/g;
                     let match;
@@ -475,26 +705,34 @@
                     
                     // 如果有新内容，更新消息
                     if (contentFound) {
+                        // 移除打字效果
+                        if (typingIndicator) {
+                            typingIndicator.remove();
+                        }
+                        
                         // 使用Marked解析Markdown
                         contentDiv.innerHTML = marked.parse(aiResponse);
+                        
+                        // 如果用户滚动到底部，则自动滚动
+                        if (isScrolledToBottom) {
+                            scrollToBottom();
+                        }
                     }
-
+                    
                     // 提取最后一个 "total_tokens"
                     const tokenMatch = /"total_tokens":(\d+)/g;
                     let token;
                     while ((token = tokenMatch.exec(chunk)) !== null) {
-                        lastTotalTokens = token[1];  // 只存最后一个 total_tokens
+                        lastTotalTokens = token[1];
                     }
-
-                    document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
                 }
-
+                
                 // 添加Token信息
                 if (lastTotalTokens !== null) {
                     const tokenInfo = document.createElement('div');
                     tokenInfo.className = 'token-info';
                     tokenInfo.textContent = `本次对话使用Token数量: ${lastTotalTokens}`;
-                    messageDiv.appendChild(tokenInfo);
+                    contentDiv.parentNode.appendChild(tokenInfo);
                     
                     // 记录到对话历史
                     conversationHistory.push({ 
@@ -504,44 +742,43 @@
                 } else {
                     conversationHistory.push({ role: 'assistant', content: aiResponse });
                 }
-
-                // 添加复制功能
-                const copyHint = document.createElement('div');
-                copyHint.className = 'copy-hint';
-                copyHint.textContent = '点击复制';
-                messageDiv.appendChild(copyHint);
                 
-                messageDiv.addEventListener("click", async () => {
-                    try {
-                        await navigator.clipboard.writeText(aiResponse);
-                        
-                        // 显示复制成功反馈
-                        copyHint.textContent = '✓ 已复制';
-                        copyHint.style.background = '#4CAF50';
-                        setTimeout(() => {
-                            copyHint.textContent = '点击复制';
-                            copyHint.style.background = 'rgba(0, 0, 0, 0.7)';
-                        }, 1500);
-                    } catch (err) {
-                        console.error("复制失败:", err);
-                        copyHint.textContent = '复制失败!';
-                        copyHint.style.background = '#F44336';
-                        setTimeout(() => {
-                            copyHint.textContent = '点击复制';
-                            copyHint.style.background = 'rgba(0, 0, 0, 0.7)';
-                        }, 1500);
-                    }
-                });
-
+                // 滚动到底部
+                scrollToBottom();
+                
             } catch (error) {
                 addMessage(`错误: ${error.message}`, false);
+            } finally {
+                // 启用发送按钮
+                sendButton.disabled = false;
             }
         }
-
-        // 回车发送消息
-        document.getElementById('user-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
-        });
+        
+        // 初始化
+        function init() {
+            setupScrollHandling();
+            
+            // 发送按钮事件
+            sendButton.addEventListener('click', sendMessage);
+            
+            // 回车发送消息（支持Shift+Enter换行）
+            document.getElementById('user-input').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            // 自动调整输入框高度
+            const textarea = document.getElementById('user-input');
+            textarea.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
