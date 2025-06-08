@@ -484,8 +484,8 @@
         
         <div class="input-area">
             <div class="auth-fields">
-                <input type="text" id="username" placeholder="用户名" value="">
-                <input type="password" id="password" placeholder="密码" value="">
+                <input type="text" id="username" placeholder="用户名" value="demo-user">
+                <input type="password" id="password" placeholder="密码" value="demo-pass">
             </div>
             
             <div class="input-wrapper">
@@ -630,37 +630,6 @@
             };
         }
         
-        // 添加复制提示
-            const copyHint = document.createElement('div');
-            copyHint.className = 'copy-hint';
-            copyHint.textContent = '点击复制';
-            messageDiv.appendChild(copyHint);
-
-            // 点击复制功能（仅限 AI 回复）
-            if (!isUser) {
-                messageDiv.addEventListener("click", async () => {
-                    try {
-                        await navigator.clipboard.writeText(content);
-                        
-                        // 显示复制成功反馈
-                        copyHint.textContent = '✓ 已复制';
-                        copyHint.style.background = '#4CAF50';
-                        setTimeout(() => {
-                            copyHint.textContent = '点击复制';
-                            copyHint.style.background = 'rgba(0, 0, 0, 0.7)';
-                        }, 1500);
-                    } catch (err) {
-                        console.error("复制失败:", err);
-                        copyHint.textContent = '复制失败!';
-                        copyHint.style.background = '#F44336';
-                        setTimeout(() => {
-                            copyHint.textContent = '点击复制';
-                            copyHint.style.background = 'rgba(0, 0, 0, 0.7)';
-                        }, 1500);
-                    }
-                });
-            }
-            
         // SHA-256 哈希函数
         async function hashString(str) {
             const hashBuffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
@@ -762,13 +731,13 @@
                 if (lastTotalTokens !== null) {
                     const tokenInfo = document.createElement('div');
                     tokenInfo.className = 'token-info';
-                    tokenInfo.textContent = `本次对话截止到现在使用Token数量: ${lastTotalTokens}`;
+                    tokenInfo.textContent = `本次对话使用Token数量: ${lastTotalTokens}`;
                     contentDiv.parentNode.appendChild(tokenInfo);
                     
                     // 记录到对话历史
                     conversationHistory.push({ 
                         role: 'assistant', 
-                        content: aiResponse + `\n\n(本次对话截止到现在使用Token数量: ${lastTotalTokens})`
+                        content: aiResponse + `\n\n(本次对话使用Token数量: ${lastTotalTokens})`
                     });
                 } else {
                     conversationHistory.push({ role: 'assistant', content: aiResponse });
