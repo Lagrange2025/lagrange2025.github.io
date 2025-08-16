@@ -1,0 +1,72 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>邮件系统</title>
+</head>
+<body>
+  <h1>邮件系统</h1>
+  <div>
+    <h2>注册</h2>
+    <input id="regEmail" placeholder="邮箱"><br>
+    <input id="regPass" type="password" placeholder="密码"><br>
+    <button onclick="register()">注册</button>
+  </div>
+  <div>
+    <h2>登录</h2>
+    <input id="logEmail" placeholder="邮箱"><br>
+    <input id="logPass" type="password" placeholder="密码"><br>
+    <button onclick="login()">登录</button>
+  </div>
+  <div>
+    <h2>发邮件</h2>
+    <input id="to" placeholder="收件人"><br>
+    <input id="subject" placeholder="主题"><br>
+    <textarea id="html" placeholder="内容"></textarea><br>
+    <button onclick="sendMail()">发送</button>
+  </div>
+  <div>
+    <h2>历史记录</h2>
+    <button onclick="loadHistory()">刷新</button>
+    <pre id="history"></pre>
+  </div>
+
+  <script>
+    const API_BASE = "http://43.143.209.52:3000"; // 改这里！！！
+
+    let token = "";
+
+    async function register() {
+      let r = await fetch(API_BASE+"/auth/register", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({email:regEmail.value, password:regPass.value})
+      });
+      let j = await r.json(); token = j.token; alert("注册成功");
+    }
+
+    async function login() {
+      let r = await fetch(API_BASE+"/auth/login", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({email:logEmail.value, password:logPass.value})
+      });
+      let j = await r.json(); token = j.token; alert("登录成功");
+    }
+
+    async function sendMail() {
+      let r = await fetch(API_BASE+"/mail/send", {
+        method:"POST",
+        headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},
+        body:JSON.stringify({to:to.value, subject:subject.value, html:html.value})
+      });
+      let j = await r.json(); alert("发送结果: "+JSON.stringify(j));
+    }
+
+    async function loadHistory() {
+      let r = await fetch(API_BASE+"/mail/history", {
+        headers:{"Authorization":"Bearer "+token}
+      });
+      let j = await r.json(); history.textContent = JSON.stringify(j,null,2);
+    }
+  </script>
+</body>
+</html>
