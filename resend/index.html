@@ -1,72 +1,115 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="zh-CN">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <title>邮件系统</title>
 </head>
 <body>
-  <h1>邮件系统</h1>
-  <div>
+  <h1>简单邮件系统</h1>
+
+  <div id="auth">
     <h2>注册</h2>
     <input id="regEmail" placeholder="邮箱"><br>
     <input id="regPass" type="password" placeholder="密码"><br>
     <button onclick="register()">注册</button>
-  </div>
-  <div>
+
     <h2>登录</h2>
     <input id="logEmail" placeholder="邮箱"><br>
     <input id="logPass" type="password" placeholder="密码"><br>
     <button onclick="login()">登录</button>
   </div>
-  <div>
-    <h2>发邮件</h2>
+
+  <div id="mail" style="display:none;">
+    <h2>发送邮件</h2>
     <input id="to" placeholder="收件人"><br>
     <input id="subject" placeholder="主题"><br>
-    <textarea id="html" placeholder="内容"></textarea><br>
+    <textarea id="body" placeholder="正文"></textarea><br>
     <button onclick="sendMail()">发送</button>
-  </div>
-  <div>
+
     <h2>历史记录</h2>
-    <button onclick="loadHistory()">刷新</button>
-    <pre id="history"></pre>
+    <button onclick="loadHistory()">刷新历史</button>
+    <ul id="history"></ul>
   </div>
 
   <script>
-    const API_BASE = "http://43.143.209.52:3000"; // 改这里！！！
+    const API = "http://你的公网IP:3000"; // 👈改成你的CVM地址
+    let token = localStorage.getItem("token");
 
-    let token = "";
-
-    async function register() {
-      let r = await fetch(API_BASE+"/auth/register", {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({email:regEmail.value, password:regPass.value})
+    function register() {
+      fetch(API + "/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: document.getElementById("regEmail").value,
+          password: document.getElementById("regPass").value
+        })
+      }).then(r => r.json()).then(d => {
+        if (d.token) {
+          alert("注册成功，已登录");
+          token = d.token;
+          localStorage.setItem("token", token);
+          showMail();
+        } else alert(d.error || "注册失败");
       });
-      let j = await r.json(); token = j.token; alert("注册成功");
     }
 
-    async function login() {
-      let r = await fetch(API_BASE+"/auth/login", {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({email:logEmail.value, password:logPass.value})
+    function login() {
+      fetch(API + "/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: document.getElementById("logEmail").value,
+          password: document.getElementById("logPass").value
+        })
+      }).then(r => r.json()).then(d => {
+        if (d.token) {
+          alert("登录成功");
+          token = d.token;
+          localStorage.setItem("token", token);
+          showMail();
+        } else alert(d.error || "登录失败");
       });
-      let j = await r.json(); token = j.token; alert("登录成功");
     }
 
-    async function sendMail() {
-      let r = await fetch(API_BASE+"/mail/send", {
-        method:"POST",
-        headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},
-        body:JSON.stringify({to:to.value, subject:subject.value, html:html.value})
+    function sendMail() {
+      fetch(API + "/mail/send", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({
+          to: document.getElementById("to").value,
+          subject: document.getElementById("subject").value,
+          html: document.getElementById("body").value
+        })
+      }).then(r => r.json()).then(d => {
+        if (d.ok) alert("邮件发送成功");
+        else alert("发送失败");
       });
-      let j = await r.json(); alert("发送结果: "+JSON.stringify(j));
     }
 
-    async function loadHistory() {
-      let r = await fetch(API_BASE+"/mail/history", {
-        headers:{"Authorization":"Bearer "+token}
+    function loadHistory() {
+      fetch(API + "/mail/history", {
+        headers: { "Authorization": "Bearer " + token }
+      }).then(r => r.json()).then(list => {
+        const ul = document.getElementById("history");
+        ul.innerHTML = "";
+        list.forEach(m => {
+          const li = document.createElement("li");
+          li.textContent = `${m.created_at} → ${m.recipient} [${m.subject}] 状态:${m.status}`;
+          ul.appendChild(li);
+        });
       });
-      let j = await r.json(); history.textContent = JSON.stringify(j,null,2);
     }
+
+    function showMail() {
+      document.getElementById("auth").style.display = "none";
+      document.getElementById("mail").style.display = "block";
+      loadHistory();
+    }
+
+    if (token) showMail();
   </script>
 </body>
 </html>
